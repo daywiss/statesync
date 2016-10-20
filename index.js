@@ -1,1 +1,1 @@
-module.exports = require('./sync-state')
+module.exports = require('./statesync')
