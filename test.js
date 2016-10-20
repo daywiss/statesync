@@ -27,6 +27,7 @@ test('sync-state',function(t){
   t.test('delete state',function(t){
     var result = state.delete('test')
     t.ok(result)
+    t.equal(state.get('test'),undefined)
     t.notOk(state.get('test'))
     t.ok(state.get('test1'))
     t.end()
@@ -58,8 +59,14 @@ test('sync-state',function(t){
     })
   })
   t.test('diff/patch',function(t){
-    var s1 = State()
+    var s1Pointer = {}
+    var s1 = State(s1Pointer)
     var s2 = State()
+
+    s1.on('change',function(state,path,value){
+      t.deepEqual(state,s1Pointer)
+      t.ok(state === s1Pointer)
+    })
 
     s1.on('diff',s2.patch)
     s2.on('diff',s1.patch)
@@ -70,6 +77,7 @@ test('sync-state',function(t){
     s1.delete('s2')
     t.equal(s1.get('blah'),2)
     t.deepEqual(s1.get(),s2.get())
+    t.deepEqual(s1.get(),s1Pointer)
     t.end()
   })
   

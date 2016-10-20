@@ -60,7 +60,7 @@ function State(root,clone,base){
       lodash.set(state,withRoot,value)
     }
 
-    emitChange(clone(state),withBase,value)
+    emitChange(clone(state[rootName]),withBase,value)
     return value
   }
 
@@ -68,7 +68,7 @@ function State(root,clone,base){
     var withBase = pathWithBase(path)
     var withRoot = pathWithRoot(withBase)
     lodash.unset(state,withRoot)
-    emitChange(clone(state),withBase)
+    emitChange(clone(state[rootName]),withBase)
     return true
   }
 
@@ -85,6 +85,7 @@ function State(root,clone,base){
   methods.scope = function(path){
     var withBase = pathWithBase(path)
     var withRoot = pathWithRoot(withBase)
+    //all scopes must start with an object that the parent is aware of
     if(lodash.get(state,withRoot) == null){
       lodash.set(state,withRoot,{})
     }
