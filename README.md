@@ -150,9 +150,9 @@ You could easily replicate between processes or from server to web client.
 ```var state = State(default,clone,path)```
 
 ###Parameters
-*default (optional) - An object which acts as a handle to internal state as well as initialization
-*clone (optional) - A syncronous function which returns a cloned object, like lodash.cloneDeep. defaults to: ``` function(x){ return x } ```
-*path (optional) - A base path which all sets/gets/deletes will be attached to
+* default (optional) - An object which acts as a handle to internal state as well as initialization
+* clone (optional) - A syncronous function which returns a cloned object, like lodash.cloneDeep. defaults to: ``` function(x){ return x } ```
+* path (optional) - A base path which all sets/gets/deletes will be attached to
 
 ###Returns
 a state object
@@ -163,8 +163,8 @@ Will emit a change and diff event on every call.
 ```var result = state.set(key,value)```
 
 ###Parameters
-*key (optional) - They key to set, if null will apply to root 
-*value (optional) - A value to set, if null will delete key
+* key (optional) - They key to set, if null will apply to root 
+* value (optional) - A value to set, if null will delete key
 
 ###Returns
 the value which was passed with clone applied
@@ -174,7 +174,7 @@ Get a value on the state. Use lodash "get" notation to access deep properties.
 ```var result = state.get(key)```
 
 ###Parameters
-*key (optional) - They key to get, if null will apply to root 
+* key (optional) - They key to get, if null will apply to root 
 
 ###Returns
 the value at that key with clone applied
@@ -185,7 +185,7 @@ Will emit a change and diff event on every call.
 ```var result = state.delete(key)```
 
 ###Parameters
-*key (optional) - They key to delete, if null will clear the whole state
+* key (optional) - They key to delete, if null will clear the whole state
 
 ###Returns
 null
@@ -197,7 +197,7 @@ Changes to child will be reflected on parent. Events can be listened to on both.
 ```var result = state.scope(key)```
 
 ###Parameters
-*key (optional) - They key to scope the child to, if null will be equal to parent
+* key (optional) - They key to scope the child to, if null will be equal to parent
 
 ###Returns
 A state object scoped to the key of the parent scope
@@ -208,8 +208,8 @@ Update the state based on a diff. Will not emit events.
 ```var result = state.update(key,value)```
 
 ###Parameters
-*key (optional) - They key to set, if null will apply to root 
-*value (optional) - A value to set, if null will delete key
+* key (optional) - They key to set, if null will apply to root 
+* value (optional) - A value to set, if null will delete key
 
 ###Returns
 null
@@ -221,15 +221,15 @@ Anytime there is a potential state change this event is emitted
 ```state.on('change',function(state,key,value){ })```
 
 ###Parameters
-*state - a representation of the state with clone applied
-*key - the key which was called 
-*value - the value which was called, null if deleted
+* state - a representation of the state with clone applied
+* key - the key which was called 
+* value - the value which was called, null if deleted
 
 ##Diff
 Anytime there is a potential state change this event is emitted
 ```state.on('diff',function(key,value){ })```
-*key - the key which was called 
-*value - the value which was called, null if deleted
+* key - the key which was called 
+* value - the value which was called, null if deleted
 
 
 
