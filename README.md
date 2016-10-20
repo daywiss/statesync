@@ -92,7 +92,7 @@ if this mutability is a problem.
 
   //lodash.cloneDeep should keep the internal state safe from this mutation
   //by default this would corrupt our state
-  assert.notEqual(languages.length,state('languages').length)
+  assert.notEqual(languages.length,state.get('languages').length)
 
 ```
 
@@ -140,5 +140,96 @@ You could easily replicate between processes or from server to web client.
   assert.deepEqual(client.get(),server.get())
 
 ```
+
+#API
+
+##Require
+```var State = require('statesync')```
+
+##Initialize
+```var state = State(default,clone,path)```
+
+###Parameters
+*default (optional) - An object which acts as a handle to internal state as well as initialization
+*clone (optional) - A syncronous function which returns a cloned object, like lodash.cloneDeep. defaults to: ``` function(x){ return x } ```
+*path (optional) - A base path which all sets/gets/deletes will be attached to
+
+###Returns
+a state object
+
+##Set
+Set a value on the state. Use lodash "set" notation to access deep properties.
+Will emit a change and diff event on every call.
+```var result = state.set(key,value)```
+
+###Parameters
+*key (optional) - They key to set, if null will apply to root 
+*value (optional) - A value to set, if null will delete key
+
+###Returns
+the value which was passed with clone applied
+
+##Get
+Get a value on the state. Use lodash "get" notation to access deep properties.
+```var result = state.get(key)```
+
+###Parameters
+*key (optional) - They key to get, if null will apply to root 
+
+###Returns
+the value at that key with clone applied
+
+##Delete
+Delete a value on the state. Use lodash "get" notation to access deep properties.
+Will emit a change and diff event on every call.
+```var result = state.delete(key)```
+
+###Parameters
+*key (optional) - They key to delete, if null will clear the whole state
+
+###Returns
+null
+
+##Scope
+Scope your visibility to a subtree of the parent scope. Can be called on child as well. 
+Changes to child will be reflected on parent. Events can be listened to on both. 
+
+```var result = state.scope(key)```
+
+###Parameters
+*key (optional) - They key to scope the child to, if null will be equal to parent
+
+###Returns
+A state object scoped to the key of the parent scope
+
+##Patch
+Update the state based on a diff. Will not emit events.
+
+```var result = state.update(key,value)```
+
+###Parameters
+*key (optional) - They key to set, if null will apply to root 
+*value (optional) - A value to set, if null will delete key
+
+###Returns
+null
+
+#Events
+
+##Change
+Anytime there is a potential state change this event is emitted
+```state.on('change',function(state,key,value){ })```
+
+###Parameters
+*state - a representation of the state with clone applied
+*key - the key which was called 
+*value - the value which was called, null if deleted
+
+##Diff
+Anytime there is a potential state change this event is emitted
+```state.on('diff',function(key,value){ })```
+*key - the key which was called 
+*value - the value which was called, null if deleted
+
 
 
