@@ -150,9 +150,9 @@ You could easily replicate between processes or from server to web client.
 ```var state = State(default,clone,path)```
 
 ###Parameters
-* default (optional) - An object which acts as a handle to internal state as well as initialization
+* default (optional) - An object which acts as a handle to internal state as well as initialization. defaults to ```{}```
 * clone (optional) - A syncronous function which returns a cloned object, like lodash.cloneDeep. defaults to: ``` function(x){ return x } ```
-* path (optional) - A base path which all sets/gets/deletes will be attached to
+* path (optional) - A base path which all sets/gets/deletes will be attached to. defaults to an empty string.
 
 ###Returns
 a state object
@@ -180,7 +180,7 @@ Get a value on the state. Use lodash "get" notation to access deep properties.
 the value at that key with clone applied
 
 ##Delete
-Delete a value on the state. Use lodash "get" notation to access deep properties.
+Delete a value on the state. Use lodash "unset" notation to access deep properties.
 Will emit a change and diff event on every call.
 ```var result = state.delete(key)```
 
