@@ -13,8 +13,6 @@ function State(root,clone,base){
   //clone function for cloning values to and from state
   clone = clone || function(x){return x}
 
-
-
   function emitChange(state,path,value){
     methods.emit('change',clone(state),path,clone(value))
     methods.emit('diff',path,value)
