@@ -32,6 +32,14 @@ test('statesync',function(t){
     t.ok(state.get('test1'))
     t.end()
   })
+  t.test('array get set delete',function(t){
+    var key = ['a','deep','value']
+    t.ok(state.set(key,true))
+    t.ok(state.get(key))
+    state.delete(key)
+    t.notOk(state.get(key))
+    t.end()
+  })
   // t.test('set null',function(t){
   //   var result = state.set()
   //   t.notOk(result)

@@ -36,7 +36,12 @@ function State(root,clone,base){
   function pathWithBase(path){
     if(lodash.isNil(path) || lodash.isEmpty(path)) return base
     if(lodash.isNil(base) || lodash.isEmpty(base)) return path
-    return base + '.' + path
+    if(lodash.isArray(path)){
+      return lodash.concat([base],path)
+    }
+    if(lodash.isString(path)){
+      return base + '.' + path
+    }
   }
 
   function clear(object){
