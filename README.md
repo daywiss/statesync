@@ -180,13 +180,14 @@ the value which was passed with clone applied
 
 ##Get
 Get a value on the state. Use lodash "get" notation to access deep properties.
-```var result = state.get(key)```
+```var result = state.get(key,defaultValue)```
 
 ###Parameters
 * key (optional) - They key to get, if null will apply to root 
+* defaultValue (optional) - The value to return if key not found, default: undefined
 
 ###Returns
-the value at that key with clone applied
+the value at that key with clone applied, or defaultValue if not found
 
 ##Delete
 Delete a value on the state. Use lodash "unset" notation to access deep properties.
@@ -233,13 +234,13 @@ Anytime there is a potential state change this event is emitted
 ###Parameters
 * state - a representation of the state with clone applied
 * key - the key which was called 
-* value - the value which was called, null if deleted
+* value - the value which was called with clone applied, null if deleted
 
 ##Diff
 Anytime there is a potential state change this event is emitted
 ```state.on('diff',function(key,value){ })```
 * key - the key which was called 
-* value - the value which was called, null if deleted
+* value - the raw value which was called, no clone, null if deleted
 
 
 
