@@ -14,28 +14,33 @@ function State(root,clone,base){
   base = base || ''
   //clone function for cloning values to and from state
   clone = clone || function(x){return x}
+
+  root = root || {}
+
   lodash.set(state,rootName,root)
 
   function emitChange(state,path,value){
-    methods.emit('change',state,path,value)
+    methods.emit('change',clone(state),path,clone(value))
     methods.emit('diff',path,value)
   }
 
-  function pathWithBase(path){
-    if(lodash.isNil(path) || lodash.isEmpty(path)){
-      return base
+  function parsePath(path){
+    if(lodash.isNil(path)){
+      return ''
     }
     if(lodash.isArray(path)){
-      return lodash.compact(lodash.concat([base],path)).join('.')
+      return path.join('.')
     }
     if(lodash.isString(path)){
-      if(base){
-        return base + '.' + path
-      }else{
-        return path
-      }
+      return path
     }
     assert(false,'unable to parse path, it can be an array, string or null')
+  }
+
+  function pathWithBase(path){
+    if(lodash.isNil(path) || lodash.isEmpty(path)) return base
+    if(lodash.isNil(base) || lodash.isEmpty(base)) return path
+    return base + '.' + path
   }
 
   function pathWithRoot(path){
@@ -43,48 +48,71 @@ function State(root,clone,base){
     return rootName + '.' + path
   }
 
+  function clear(object){
+    lodash(object).keys().each(function(key){
+      lodash.unset(object,key)
+    })
+  }
+
   methods.get = function(path){
+    path = parsePath(path)
     var withBase = pathWithBase(path)
-    var withRoot = pathWithRoot(withBase)
+    var withRoot = pathWithRoot(path)
     return clone(lodash.get(state,withRoot))
   }
 
   methods.set = function(path,value){
+    assert(lodash.isNil(path) == false,'set path cannot be null')
+    path = parsePath(path)
     var withBase = pathWithBase(path)
-    var withRoot = pathWithRoot(withBase)
-    value = clone(value)
-
+    var withRoot = pathWithRoot(path)
     if(lodash.isNil(value)){
+      // clear(lodash.get(state,withRoot))
+      // lodash.assign(lodash.get(state,withRoot),value)
       lodash.unset(state,withRoot)
     }else{
       lodash.set(state,withRoot,value)
     }
-
-    emitChange(clone(state[rootName]),withBase,value)
-    return value
+    emitChange(state[rootName],withBase,value)
+    return clone(value)
   }
 
   methods.delete = function(path){
+    path = parsePath(path)
     var withBase = pathWithBase(path)
-    var withRoot = pathWithRoot(withBase)
-    lodash.unset(state,withRoot)
-    emitChange(clone(state[rootName]),withBase)
+    var withRoot = pathWithRoot(path)
+    if(lodash.isEmpty(path)){
+      clear(lodash.get(state,withRoot))
+    }else{
+      lodash.unset(state,withRoot)
+    }
+    emitChange(state[rootName],withBase)
   }
 
   methods.patch = function(path,value){
+    // assert(lodash.isNil(path) == false,'patch path cannot be null')
+    path = parsePath(path)
     var withBase = pathWithBase(path)
     var withRoot = pathWithRoot(withBase)
+    //delete or clear root
+    if(lodash.isNil(path)){
+      clear(lodash.get(state,withRoot))
+      return
+    }
+    //delete prop
     if(lodash.isNil(value)){
       lodash.unset(state,withRoot)
-    }else{
-      lodash.set(state,withRoot,value)
+      return 
     }
+    //set prop
+    lodash.set(state,withRoot,value)
   }
 
   methods.scope = function(path){
-    var withBase = pathWithBase(path)
-    var withRoot = pathWithRoot(withBase)
-    //all scopes must start with an object that the parent is aware of
+    path = parsePath(path)
+    var withRoot = pathWithRoot(path)
+    //all scopes must start with an object that the parent is aware of it
+    //using lodash methods rather than local ones for slightly better perf
     if(lodash.get(state,withRoot) == null){
       lodash.set(state,withRoot,{})
     }
@@ -94,7 +122,6 @@ function State(root,clone,base){
     })
     return child
   }
-
   return methods
 }
 

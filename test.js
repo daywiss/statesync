@@ -25,36 +25,36 @@ test('sync-state',function(t){
     t.end()
   })
   t.test('delete state',function(t){
-    var result = state.delete('test')
-    t.ok(result)
+    state.delete('test')
     t.equal(state.get('test'),undefined)
     t.notOk(state.get('test'))
     t.ok(state.get('test1'))
     t.end()
   })
-  t.test('set null',function(t){
-    var result = state.set()
-    t.notOk(result)
-    t.notOk(state.get('test1'))
-    t.end()
-  })
+  // t.test('set null',function(t){
+  //   var result = state.set()
+  //   t.notOk(result)
+  //   t.notOk(state.get('test1'))
+  //   t.end()
+  // })
   t.test('scope',function(t){
-    var test = null
+    var scope = null
     t.test('init',function(t){
-      test = state.scope('test')
-      t.ok(test)
+      scope = state.scope('scope')
+      t.ok(scope)
       t.end()
     })
     t.test('set/get',function(t){
-      test.set('child','child')
-      t.equal(test.get('child'),'child')
-      t.equal(state.get('test.child'),'child')
+      scope.set('child','child')
+      t.equal(scope.get('child'),'child')
+      t.equal(state.get('scope.child'),'child')
+      t.equal(scope.get(),state.get('scope'))
       t.end()
     })
     t.test('delete',function(t){
-      test.delete('child')
-      t.notOk(test.get('child'))
-      t.notOk(state.get('test.child'))
+      scope.delete('child')
+      t.notOk(scope.get('child'))
+      t.notOk(state.get('scope.child'))
       t.end()
     })
   })
@@ -79,6 +79,22 @@ test('sync-state',function(t){
     t.deepEqual(s1.get(),s2.get())
     t.deepEqual(s1.get(),s1Pointer)
     t.end()
+  })
+  t.test('internal pointer',function(t){
+    var ptr = {test:'test'}
+    var state = State(ptr)
+    // t.test('set root to null',function(t){
+    //   t.equal(state.get('test'),'test')
+    //   state.set()
+    //   t.equal(ptr,state.get())
+    //   t.end()
+    // })
+    t.test('delete root',function(t){
+      t.equal(state.get('test'),'test')
+      state.delete()
+      t.equal(ptr,state.get())
+      t.end()
+    })
   })
   
 })
