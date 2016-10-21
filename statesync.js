@@ -13,9 +13,11 @@ function State(root,clone,base){
   //clone function for cloning values to and from state
   clone = clone || function(x){return x}
 
+  var subscriptions = []
   function emitChange(state,path,value){
     methods.emit('change',clone(state),path,clone(value))
     methods.emit('diff',path,value)
+    methods.emit(path,value)
   }
 
   function parsePath(path){
@@ -81,8 +83,14 @@ function State(root,clone,base){
     path = parsePath(path)
     var withBase = pathWithBase(path)
     //delete or clear root
-    if(lodash.isNil(path)){
+    if(lodash.isEmpty(path) && lodash.isNil(value)){
       clear(state)
+      return
+    }
+    //replace state completely
+    if(lodash.isEmpty(path)){
+      //value should be an object, might need to throw error if not
+      state = value
       return
     }
     //delete prop
@@ -97,16 +105,38 @@ function State(root,clone,base){
   methods.scope = function(path){
     path = parsePath(path)
     //all scopes must start with an object that the parent is aware of it
-    //using lodash methods rather than local ones for slightly better perf
     if(lodash.get(state,path) == null){
       lodash.set(state,path,{})
     }
-    var child = State(lodash.get(state,path),clone,base)
-    child.on('change',function(s,p,v){
-      emitChange(state,pathWithBase(p),v)
+    var child = null
+    if(lodash.isEmpty(path)){
+      child = State(state,clone,base)
+    }else{
+      child = State(lodash.get(state,path),clone,base)
+    }
+    //listen for child to change, parent and child emits
+    function updateParent(p,v){
+      methods.set(pathWithBase(p),v)
+    }
+    child.on('diff',updateParent)
+    subscriptions.push(child.removeListener.bind(child,'diff',updateParent))
+
+    //parent replaced child root, update child with new value
+    methods.on(path,function(value){
+      child.patch(null,value)
     })
     return child
   }
+
+  //remove listeners mainly
+  methods.destroy = function(){
+    methods.removeAllListeners()
+    lodash.each(subscriptions,function(unsubscribe){
+      unsubscribe()
+    })
+    subscriptions = {}
+  }
+
   return methods
 }
 

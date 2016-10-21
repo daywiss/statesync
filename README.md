@@ -101,8 +101,8 @@ if this mutability is a problem.
 
 ##Sub states or Scopes
 Scope from the root state or any child state as many times as you want. Useful if you only want a subsection of your state tree to
-be accessible. Modifications to children will be reflected up the tree. Modifications on parent may cause child to lose reference
-to parent object, so try to avoid altering child state through parent, or use lodash . notation for getting and setting.
+be accessible. Modifications to children will be reflected up the tree. Modifications to childs root from parent will
+be propogated down the tree.
 ```js
   var defaultState = {
     redteam:{}
@@ -123,9 +123,9 @@ to parent object, so try to avoid altering child state through parent, or use lo
   assert.deepEqual(redteam.get(),defaultState.redteam)
   assert.deepEqual(blueteam.get(),defaultState.blueteam)
   
-  //this is bad because the child will lose reference to the parent object and will become out of sync
+  //this is allowed because child scope listens for changes on parent when it affects its root
   state.set('redteam',{votes:12})
-  //do this instead
+  //this is also ok
   state.set('redteam.votes',12)
   
 ```
@@ -225,6 +225,16 @@ Update the state based on a diff. Will not emit events.
 ###Returns
 null
 
+##Destroy
+Removes all listeners from this state, isolating it from any other scoped states
+and letting it be garbage collected.
+
+###Parameters
+none
+
+###Returns
+null
+
 #Events
 
 ##Change
@@ -242,5 +252,10 @@ Anytime there is a potential state change this event is emitted
 * key - the key which was called 
 * value - the raw value which was called, no clone, null if deleted
 
+##${path}
+Events will be emitted on specific paths which sets and gets happen.
+Values emitted are not cloned.
+```state.on('some.random.path',function(value){ })```
+* value - the raw value which was called, no clone, null if deleted
 
 

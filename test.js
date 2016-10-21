@@ -20,7 +20,7 @@ test('statesync',function(t){
   })
   t.test('get null',function(t){
     var result = state.get()
-    console.log(result)
+    // console.log(result)
     t.ok(result)
     t.ok(result.test)
     t.end()
@@ -58,28 +58,97 @@ test('statesync',function(t){
       t.notOk(state.get('scope.child'))
       t.end()
     })
+    t.test('set child through parent',function(t){
+      scope.set('replaceme',true)
+      state.set('scope',{replaced:true})
+      t.equal(state.get('scope'),scope.get())
+      state.set('scope.child',true)
+      t.equal(state.get('scope.child'),scope.get('child'))
+      t.end()
+    })
+    t.test('scope root path',function(t){
+      var scope = state.scope()
+      t.deepEqual(scope.get(),state.get())
+
+      t.equal(scope.get(),state.get())
+      t.deepEqual(scope.get(),state.get())
+
+      scope.delete()
+      t.equal(scope.get(),state.get())
+      t.deepEqual(scope.get(),state.get())
+
+      scope.set('event',true)
+
+      t.end()
+    })
+    t.test('scope root path evnts',function(t){
+      t.plan(1)
+
+      var scope = state.scope()
+      scope.set('event',true)
+      state.once('change',function(state){
+        t.ok(state)
+      })
+
+      t.end()
+    })
+    t.test('parent event when child changes',function(t){
+      t.plan(1)
+      state.once('change',function(state){
+        t.ok(state)
+      })
+      scope.set('some.deep.value',true)
+    })
   })
   t.test('diff/patch',function(t){
-    var s1Pointer = {}
-    var s1 = State(s1Pointer)
-    var s2 = State()
+    t.test('example',function(t){
+      var s1Pointer = {}
+      var s1 = State(s1Pointer)
+      var s2 = State()
 
-    s1.on('change',function(state,path,value){
-      t.deepEqual(state,s1Pointer)
-      t.ok(state === s1Pointer)
+      s1.on('change',function(state,path,value){
+        t.deepEqual(state,s1Pointer)
+        t.ok(state === s1Pointer)
+      })
+
+      s1.on('diff',s2.patch)
+      s2.on('diff',s1.patch)
+      s1.set('s1',true)
+      s2.set('s2',true)
+      s1.set('blah',1)
+      s2.set('blah',2)
+      s1.delete('s2')
+      t.equal(s1.get('blah'),2)
+      t.deepEqual(s1.get(),s2.get())
+      t.deepEqual(s1.get(),s1Pointer)
+      t.end()
     })
-
-    s1.on('diff',s2.patch)
-    s2.on('diff',s1.patch)
-    s1.set('s1',true)
-    s2.set('s2',true)
-    s1.set('blah',1)
-    s2.set('blah',2)
-    s1.delete('s2')
-    t.equal(s1.get('blah'),2)
-    t.deepEqual(s1.get(),s2.get())
-    t.deepEqual(s1.get(),s1Pointer)
-    t.end()
+    t.test('path and value exist',function(t){
+      var state = State()
+      state.patch('true',true)
+      state.patch('false',false)
+      t.ok(state.get('true'))
+      t.equal(state.get('false'),false)
+      t.end()
+    })
+    t.test('path exists and value doesnt',function(t){
+      var state = State({path:{dir:'somethinghere'}})
+      state.patch('path')
+      t.notOk(state.get('path'))
+      t.end()
+    })
+    t.test('value exists path doesnt',function(t){
+      var state = State({path:{dir:'somethinghere'}})
+      state.patch(null,{path:'replaced'})
+      t.deepEqual(state.get('path'),'replaced')
+      t.end()
+    })
+    t.test('path and value dont exist',function(t){
+      var state = State({path:{dir:'somethinghere'}})
+      state.patch()
+      t.deepEqual(state.get(),{})
+      t.end()
+    })
   })
   t.test('internal pointer',function(t){
     var ptr = {test:'test'}
@@ -96,6 +165,15 @@ test('statesync',function(t){
       t.equal(ptr,state.get())
       t.end()
     })
+  })
+  t.test('destroy',function(t){
+    var child1 = state.scope('child1')
+    var child2 = state.scope('child2')
+    state.destroy()
+    child1.set('test',true)
+    child2.set('test',true)
+    state.on('change',t.end)
+    t.end()
   })
   
 })
