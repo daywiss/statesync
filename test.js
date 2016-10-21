@@ -1,7 +1,7 @@
 var test = require('tape')
 var State = require('.')
 
-test('sync-state',function(t){
+test('statesync',function(t){
   var state = null
   t.test('init',function(t){
     state = State()

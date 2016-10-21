@@ -102,8 +102,8 @@ function State(root,clone,base){
       lodash.set(state,path,{})
     }
     var child = State(lodash.get(state,path),clone,base)
-    child.on('change',function(state,path,value){
-      emitChange(state,pathWithBase(path),value)
+    child.on('change',function(s,p,v){
+      emitChange(state,pathWithBase(p),v)
     })
     return child
   }
