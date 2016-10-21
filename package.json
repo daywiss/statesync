@@ -1,12 +1,12 @@
 {
   "name": "statesync",
   "version": "0.0.7",
-  "description": "",
+  "description": "Light weight syncronous global state manager using just lodash and a javascript object.",
   "main": "index.js",
   "scripts": {
     "test": "node test"
   },
-  "author": "",
+  "author": "daywiss@gmail.com",
   "license": "ISC",
   "dependencies": {
     "lodash": "^4.16.4"
