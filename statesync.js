@@ -134,7 +134,7 @@ function State(root,clone,base){
     lodash.each(subscriptions,function(unsubscribe){
       unsubscribe()
     })
-    subscriptions = {}
+    subscriptions = []
   }
 
   return methods
