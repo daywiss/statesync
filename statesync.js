@@ -29,7 +29,7 @@ function State(root,clone,base){
       return ''
     }
     if(lodash.isArray(path)){
-      return path.join('.')
+      return path
     }
     if(lodash.isString(path)){
       return path
@@ -54,11 +54,11 @@ function State(root,clone,base){
     })
   }
 
-  methods.get = function(path){
+  methods.get = function(path,defaultValue){
     path = parsePath(path)
     var withBase = pathWithBase(path)
     var withRoot = pathWithRoot(path)
-    return clone(lodash.get(state,withRoot))
+    return clone(lodash.get(state,withRoot,defaultValue))
   }
 
   methods.set = function(path,value){
