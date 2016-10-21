@@ -26,6 +26,9 @@ Light weight syncronous global state manager using just lodash and a javascript 
   state.delete('key')
   //or state.set('key',null)
   assert.equal(state.get('key'),undefined)
+  
+  //clear all keys in state
+  state.delete()
 
 ```
 ##Deep Inspection
@@ -98,7 +101,8 @@ if this mutability is a problem.
 
 ##Sub states or Scopes
 Scope from the root state or any child state as many times as you want. Useful if you only want a subsection of your state tree to
-be accessible. Modifications to children will be reflected up the tree.
+be accessible. Modifications to children will be reflected up the tree. Modifications on parent may cause child to lose reference
+to parent object, so try to avoid altering child state through parent, or use lodash . notation for getting and setting.
 ```js
   var defaultState = {
     redteam:{}
@@ -118,6 +122,11 @@ be accessible. Modifications to children will be reflected up the tree.
   //unless a clone function is supplied
   assert.deepEqual(redteam.get(),defaultState.redteam)
   assert.deepEqual(blueteam.get(),defaultState.blueteam)
+  
+  //this is bad because the child will lose reference to the parent object and will become out of sync
+  state.set('redteam',{votes:12})
+  //do this instead
+  state.set('redteam.votes',12)
   
 ```
 
@@ -163,7 +172,7 @@ Will emit a change and diff event on every call.
 ```var result = state.set(key,value)```
 
 ###Parameters
-* key (optional) - They key to set, if null will apply to root 
+* key (required) - They key to set, null throws an error, setting root directly is currently not allowed
 * value (optional) - A value to set, if null will delete key
 
 ###Returns
@@ -185,7 +194,7 @@ Will emit a change and diff event on every call.
 ```var result = state.delete(key)```
 
 ###Parameters
-* key (optional) - They key to delete, if null will clear the whole state
+* key (optional) - They key to delete, if null will clear all properties from entire state
 
 ###Returns
 null
@@ -193,6 +202,7 @@ null
 ##Scope
 Scope your visibility to a subtree of the parent scope. Can be called on child as well. 
 Changes to child will be reflected on parent. Events can be listened to on both. 
+Children may lose reference to their node if parent overrwrites the object key.
 
 ```var result = state.scope(key)```
 
