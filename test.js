@@ -20,6 +20,7 @@ test('sync-state',function(t){
   })
   t.test('get null',function(t){
     var result = state.get()
+    console.log(result)
     t.ok(result)
     t.ok(result.test)
     t.end()
