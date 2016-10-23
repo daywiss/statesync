@@ -4,6 +4,7 @@ var Emitter = require('events')
 
 module.exports = Root
 
+//internal functions to manipulate state
 function Root(state,clone){
   //state tree
   state = state || {}
@@ -22,6 +23,12 @@ function Root(state,clone){
     methods.emit('diff',{ method:method,path:path,value:value })
   }
 
+  function clear(object){
+    lodash(object).keys().each(function(key){
+      lodash.unset(object,key)
+    })
+  }
+
   methods.has = function(path){
     if(lodash.isEmpty(path)){
       return true
@@ -31,7 +38,6 @@ function Root(state,clone){
   }
 
   methods.get = function(path,defaultValue){
-    // console.log('get',path,defaultValue,state)
     if(lodash.isEmpty(path)){
       return state
     }else{
@@ -41,6 +47,7 @@ function Root(state,clone){
 
   methods.set = function(path,value,emit){
     if(lodash.isEmpty(path)){
+      //replaces state object, use at risk
       state = value
     }else{
       lodash.set(state,path,value)
@@ -50,13 +57,13 @@ function Root(state,clone){
       emitChange(path) 
       emitDiff('set',path,value) 
     }
-    // console.log('set',path,value)
     return value
   }
 
   methods.delete = function(path,emit){
     if(lodash.isEmpty(path)){
-      state = null
+      //clear state without replacing object
+      clear(state)
     }else{
       lodash.unset(state,path)
     }
@@ -67,7 +74,6 @@ function Root(state,clone){
   }
 
   methods.patch = function(diff){
-    console.log(diff)
     return methods[diff.method](diff.path,diff.value,false)
   }
 
@@ -80,13 +86,14 @@ function Root(state,clone){
   return methods.scope([],state)
 
 }
+//this is the api users interact with
 function Scope(root,base,clone){
   assert(root,'requires state root')
   base = parsePath(base)
   // var methods = new Emitter()
 
-  function methods(path){
-    return methods.get(path)
+  function methods(path,defaultValue){
+    return methods.get(path,defaultValue)
   }
   //this seems to work...
   lodash.merge(methods,new Emitter())
@@ -96,7 +103,7 @@ function Scope(root,base,clone){
     //emit appropriate events
     path = wasPathTouched(path,base)
     if(path == false) return
-    methods.emit('change',methods.get(),path)
+    methods.emit('change',methods.get(),path,methods.get(path))
   }
 
   function handleRootDiff(action){
@@ -147,6 +154,9 @@ function Scope(root,base,clone){
     return root.has(path)
   },[pathWithBase])
 
+  //these functions would be good candidate for 
+  //lodash.overArgs, but overArgs will not pass
+  //null parameters through
   methods.get = function(path,defaultValue){
     path = pathWithBase(path)
     defaultValue = clone(defaultValue)

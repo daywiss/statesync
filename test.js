@@ -21,14 +21,12 @@ test('statesync',function(t){
   })
   t.test('get null',function(t){
     var result = state.get()
-    // console.log(result)
     t.ok(result)
     t.ok(result.test)
     t.end()
   })
   t.test('get from constructor',function(t){
     var result = state()
-    // console.log(result)
     t.ok(result)
     t.ok(result.test,state('test'))
     t.end()
@@ -48,12 +46,6 @@ test('statesync',function(t){
     t.notOk(state.get(key))
     t.end()
   })
-  // t.test('set null',function(t){
-  //   var result = state.set()
-  //   t.notOk(result)
-  //   t.notOk(state.get('test1'))
-  //   t.end()
-  // })
   t.test('scope',function(t){
     var scope = null
     t.test('init',function(t){

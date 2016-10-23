@@ -18,9 +18,12 @@ Light weight syncronous global state manager using just lodash and a javascript 
 
   //get the value
   assert.equal(state.get('key'),value)
+  //this is equivalent to get
+  assert.equal(state('key'),value)
 
   //get the root state object for read only purposes
   assert(state.get().key,value)
+  assert(state().key,value)
 
   //delete the key value
   state.delete('key')
@@ -33,14 +36,17 @@ Light weight syncronous global state manager using just lodash and a javascript 
 ```
 ##Deep Inspection
 Get Set and Delete use lodash's get set and unset methods which means accessing parameters has the same
-rules, but additionally You can also access the property with an array
+rules.
 ```js
   //set some key value
   state.set('this.is.a.deep.value','true')
 
-  //get the value
-  assert.equal(state.get('this.is.a.deep.value'),state.get(['this','is','a','deep','value']))
-  //also state.get()['this']['is']['a']['deep']['value']
+  //various ways to get the value
+  state.get('this.is.a.deep.value')
+  state.get(['this','is','a','deep','value'])
+  state.get()['this']['is']['a']['deep']['value']
+  state('this.is.a.deep.value')
+  state(['this','is','a','deep','value'])
 
   //delete the key value
   state.delete('this.is.a.deep.value')
@@ -62,12 +68,30 @@ You should not mutate this object!
   //first parameter will let you keep handle to internal state for read only purposes
   var state = State(statePointer)
 
-  state.on('change',function(state,path,value){
+  state.once('change',function(state,key,value){
+    //state is the same as our statePointer
     assert.deepEqual(state,statePointer)
+    assert.equal(state.read,'me')
+    assert.equal(key,'read')
+    assert.equal(value,'me')
     assert(state===statePointer)
   })
 
   state.set('read','me')
+
+  //set has the ability to overwrite the root object with whatever value you want
+  //but you will lose your external reference
+  state.set(null,{})
+
+  assert(statePointer !== state())
+
+  //so get it back using root()
+  statePointer = state.root()
+
+  //if you only want to clear all properties from 
+  //the root object without losing external reference it, use delete()
+
+  state.delete()
 
 ```
 
@@ -82,37 +106,44 @@ if this mutability is a problem.
   //second parameter is a custom clone function which gets applied to all gets, sets, deletes and events
   var state = State(null,lodash.cloneDeep)
 
-  state.on('change',function(state,path,value){
+  state.on('change',function(state,key,value){
     assert.deepEqual(languages,state.languages)
     assert.notEqual(languages, state.languages)
+    assert.equal(key,'languages')
+    assert.deepEqual(value,languages)
   })
 
   var languages = [ 'javascript' ]
 
   state.set('languages',languages)
 
+  //lodash.cloneDeep should keep the internal state safe from this outside mutation
+  //by default this would corrupt our state
   languages.push('java')
 
-  //lodash.cloneDeep should keep the internal state safe from this mutation
-  //by default this would corrupt our state
   assert.notEqual(languages.length,state.get('languages').length)
 
 ```
 
 ##Sub states or Scopes
 Scope from the root state or any child state as many times as you want. Useful if you only want a subsection of your state tree to
-be accessible. Modifications to children will be reflected up the tree. Modifications to childs root from parent will
-be propogated down the tree.
+be accessible. Child scopes will be referencing values from the root object so they will always be consistent.
+Changes to child or parents will emit the appropriate events relative to their scope. 
+
 ```js
   var defaultState = {
     redteam:{}
     blueteam:{}
+    hiddencolor:{
+      yellowteam:{}
+    }
   }
 
   var state = State(defaultState)
 
   var redteam = state.scope('redteam')
   var blueteam = state.scope('blueteam')
+  var yellowteam = state.scope('hiddencolor.yellowteam')
 
   redteam.set('votes',10)
   blueteam.set('votes',11)
@@ -127,12 +158,20 @@ be propogated down the tree.
   state.set('redteam',{votes:12})
   //this is also ok
   state.set('redteam.votes',12)
+
+  //deeper elements will also be properly updated
+  //this will cause yellowteam to emit a change event that its value is now undefined
+  state.set('hiddencolor',{greenteam:{}})
+
+  //yellow teams parent property, "hiddencolor" was overriden, and now will be undefined
+  assert.equal(yellowteam(),null)
   
 ```
 
 ##Replication
 You can replicate states directly or with some transport layer. Keep in mind The change feeds are very course, not optimized for size.
 You could easily replicate between processes or from server to web client.
+
 ```js
 
   var server = State()
@@ -140,7 +179,6 @@ You could easily replicate between processes or from server to web client.
 
   server.on('diff',client.patch)
   client.on('diff',server.patch)
-
 
   client.set('clientkey','clientsecret')
   server.set('serverkey','serversecret')
@@ -156,54 +194,62 @@ You could easily replicate between processes or from server to web client.
 ```var State = require('statesync')```
 
 ##Initialize
-```var state = State(default,clone,path)```
+```var state = State(default,clone)```
 
 ###Parameters
-* default (optional) - An object which acts as a handle to internal state as well as initialization. defaults to ```{}```
-* clone (optional) - A syncronous function which returns a cloned object, like lodash.cloneDeep. defaults to: ``` function(x){ return x } ```
-* path (optional) - A base path which all sets/gets/deletes will be attached to. defaults to an empty string.
+* default (optional) - An object which acts as a handle to internal state as well as initialization.    
+  defaults to ```{}```
+* clone (optional) - A syncronous function which returns a cloned object, like lodash.cloneDeep.    
+  defaults to: ``` function(x){ return x } ```
 
 ###Returns
 a state object
 
 ##Set
 Set a value on the state. Use lodash "set" notation to access deep properties.
-Will emit a change and diff event on every call.
+Will emit a change and diff event on every call.   
 ```var result = state.set(key,value)```
 
 ###Parameters
-* key (required) - They key to set, null throws an error, setting root directly is currently not allowed
-* value (optional) - A value to set, if null will delete key
+* key (optional) - They key to set, if null, will replace the root of the current scope. This will also invalidate 
+any external reference, so it is not recommended to do so use at own risk.
+* value (optional) - A value to set, if not provided will set key to null or undefined.
 
 ###Returns
 the value which was passed with clone applied
 
 ##Get
-Get a value on the state. Use lodash "get" notation to access deep properties.
-```var result = state.get(key,defaultValue)```
+Get a value on the state. Use lodash "get" notation to access deep properties.     
+
+```js
+var result = state.get(key,defaultValue)
+var result = state(key,defaultValue)
+
+```
 
 ###Parameters
 * key (optional) - They key to get, if null will apply to root 
-* defaultValue (optional) - The value to return if key not found, default: undefined
+* defaultValue (optional) - The value to return if key not found, default: undefined   
 
 ###Returns
 the value at that key with clone applied, or defaultValue if not found
 
 ##Delete
 Delete a value on the state. Use lodash "unset" notation to access deep properties.
-Will emit a change and diff event on every call.
+Will emit a change and diff event on every call.   
 ```var result = state.delete(key)```
 
 ###Parameters
-* key (optional) - They key to delete, if null will clear all properties from entire state
+* key (optional) - They key to delete, if not provided will clear all properties from the root of the current scope. 
+Will not invalidate external handles to state.
 
 ###Returns
-null
+nothing
 
 ##Scope
-Scope your visibility to a subtree of the parent scope. Can be called on child as well. 
-Changes to child will be reflected on parent. Events can be listened to on both. 
-Children may lose reference to their node if parent overrwrites the object key.
+Scope your visibility to a subtree of the parent scope. Can be called on child as well. All scopes
+will respond to changes from any other scope if it affects their path/key by emitting the appropriate
+events.
 
 ```var result = state.scope(key)```
 
@@ -225,9 +271,8 @@ Update the state based on a diff. Will not emit events.
 ###Returns
 null
 
-##Destroy
-Removes all listeners from this state, isolating it from any other scoped states
-and letting it be garbage collected.
+##Disconnect
+Removes all listeners from this state and will stop emitting events.
 
 ###Parameters
 none
@@ -238,24 +283,35 @@ null
 #Events
 
 ##Change
-Anytime there is a potential state change this event is emitted
+Anytime there is a potential state change this event is emitted   
 ```state.on('change',function(state,key,value){ })```
 
 ###Parameters
-* state - a representation of the state with clone applied
-* key - the key which was called 
+* state - a representation of the state with clone applied from the root of current scope
+* key - the key which was called as an array
 * value - the value which was called with clone applied, null if deleted
 
 ##Diff
-Anytime there is a potential state change this event is emitted
-```state.on('diff',function(key,value){ })```
-* key - the key which was called 
-* value - the raw value which was called, no clone, null if deleted
+Anytime there is a potential state change this event is emitted, use in conjuction
+with patch. Not normally used directly.     
+```state.on('diff',function(action){ })```    
 
-##${path}
-Events will be emitted on specific paths which sets and gets happen.
-Values emitted are not cloned.
-```state.on('some.random.path',function(value){ })```
-* value - the raw value which was called, no clone, null if deleted
+* action - parameter comes as an object      
+
+```
+  action = {
+    method:'set' or 'delete', 
+    path:[] //path/key affected,
+    value:any //value passed in
+  }
+```
+
+##['some','key']
+Events will be emitted on specific keys which sets and deletes happen. You must use
+the key array notation for listening to property changes on the state.
+
+```state.on(['some','key'],function(value,key){ })```
+* value - value which was called relative to root of current scope
+* key - the key which was called as an array
 
 
