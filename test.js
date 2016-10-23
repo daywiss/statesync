@@ -26,6 +26,13 @@ test('statesync',function(t){
     t.ok(result.test)
     t.end()
   })
+  t.test('get from constructor',function(t){
+    var result = state()
+    // console.log(result)
+    t.ok(result)
+    t.ok(result.test,state('test'))
+    t.end()
+  })
   t.test('delete state',function(t){
     state.delete('test')
     t.equal(state.get('test'),undefined)

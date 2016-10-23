@@ -83,7 +83,13 @@ function Root(state,clone){
 function Scope(root,base,clone){
   assert(root,'requires state root')
   base = parsePath(base)
-  var methods = new Emitter()
+  // var methods = new Emitter()
+
+  function methods(path){
+    return methods.get(path)
+  }
+  //this seems to work...
+  lodash.merge(methods,new Emitter())
 
   function handleRootChange(path,value){
     //check if path affects us
@@ -96,7 +102,9 @@ function Scope(root,base,clone){
   function handleRootDiff(action){
     var path = wasPathTouched(action.path,base)
     if(path == false) return
-    methods.emit('diff',{ method:action.method,path:path,value:methods.get(path) })
+    var value = methods.get(path)
+    methods.emit('diff',{ method:action.method,path:path,value:value})
+    methods.emit(path,value,path)
   }
 
   root.on('change',handleRootChange)
@@ -175,6 +183,12 @@ function Scope(root,base,clone){
   methods.disconnect = function(){
     root.removeListener('diff',handleRootDiff)
     root.removeListener('change',handleRootChange)
+  }
+
+  methods.type = 'statesync'
+
+  methods.path = function(){
+    return base
   }
 
   return methods
