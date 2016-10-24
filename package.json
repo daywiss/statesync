@@ -10,6 +10,9 @@
   "bugs": {
     "url" : "https://github.com/daywiss/statesync/issues"
   },
+  "repository":{
+    "url":"https://github.com/daywiss/statesync",
+  },
   "main": "index.js",
   "scripts": {
     "test": "node test"
