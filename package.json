@@ -1,6 +1,6 @@
 {
   "name": "statesync",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "Light weight syncronous global state manager using just lodash and a javascript object.",
   "keywords": ["state","state manager","cache","react",
                "flux","functional","data","data model",
@@ -11,7 +11,7 @@
     "url" : "https://github.com/daywiss/statesync/issues"
   },
   "repository":{
-    "url":"https://github.com/daywiss/statesync",
+    "url":"https://github.com/daywiss/statesync"
   },
   "main": "index.js",
   "scripts": {
