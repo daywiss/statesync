@@ -41,8 +41,9 @@ rules.
   //set some key value
   state.set('this.is.a.deep.value','true')
 
-  //various ways to get the value
+  //various ways(but not exhuastive) to get a value
   state.get('this.is.a.deep.value')
+  state().this.is.a.deep.value
   state.get(['this','is','a','deep','value'])
   state.get()['this']['is']['a']['deep']['value']
   state('this.is.a.deep.value')
@@ -52,6 +53,41 @@ rules.
   state.delete('this.is.a.deep.value')
 ```
 
+##Events
+The state object is a node event emitter, so that api is the same, subscribe with .on or .once, and listen for a 'change' event
+or listen to the particular keys you are interested in.
+Unsubscribe with .removeListener.
+
+```js
+  //trigger this only once then unsubscribe
+  state.once('change',function(state,key,value){
+    //state is the entire state from root 
+    assert.deepEqual(state,{ greeting:'hello' })
+
+    //key is the key path which was changed, as an array
+    assert.deepEqual(key,['greeting']
+
+    //value is the value that changed at the key
+    assert.equal(value,'hello')
+  })
+
+  //to listen to a key path, use array notation
+  //this will emit any time this path, or subpath changes
+  state.on(['deep','key'],function(value,key){
+
+    //value which was changed at path
+    assert.equal(value,'secret')
+
+    //key path which changed, as an array
+    assert(key,['deep','key'])
+  })
+
+  state.set('greeting','hello')
+
+  state.set('deep.key','secret')
+
+```
+  
 
 #Advanced Usage
 

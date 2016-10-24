@@ -1,7 +1,15 @@
 {
   "name": "statesync",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Light weight syncronous global state manager using just lodash and a javascript object.",
+  "keywords": ["state","state manager","cache","react",
+               "flux","functional","data","data model",
+               "events","replication","data mirror" ,
+               "model","memory","pojo"],
+  "homepage": "https://github.com/daywiss/statesync",
+  "bugs": {
+    "url" : "https://github.com/daywiss/statesync/issues"
+  },
   "main": "index.js",
   "scripts": {
     "test": "node test"

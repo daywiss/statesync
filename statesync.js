@@ -143,6 +143,7 @@ function Scope(root,base,clone){
           'path must be array, string, or null')
     return lodash.toPath(path)
   }
+  //concat base with path
   function pathWithBase(path){
     path = parsePath(path)
     if(lodash.isEmpty(path)) return base
@@ -150,13 +151,14 @@ function Scope(root,base,clone){
     return lodash.concat(base,path)
   }
 
-  methods.has = lodash.overArgs(function(path){
-    return root.has(path)
-  },[pathWithBase])
-
   //these functions would be good candidate for 
   //lodash.overArgs, but overArgs will not pass
   //null parameters through
+  methods.has = function(path){
+    path = pathWithBase(path)
+    return root.has(path)
+  }
+
   methods.get = function(path,defaultValue){
     path = pathWithBase(path)
     defaultValue = clone(defaultValue)
