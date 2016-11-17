@@ -237,6 +237,8 @@ You could easily replicate between processes or from server to web client.
   defaults to ```{}```
 * clone (optional) - A syncronous function which returns a cloned object, like lodash.cloneDeep.    
   defaults to: ``` function(x){ return x } ```
+* equals (optional) - A syncronous function which returns if 2 values are equal, like lodash.isEqual.    
+  defaults to: ``` function(x,y){ return x === y } ```
 
 ###Returns
 a state object
@@ -291,18 +293,24 @@ events.
 
 ###Parameters
 * key (optional) - They key to scope the child to, if null will be equal to parent
+* value (optional) - They value to set this key to. If null, keeps the existing value at the key path. 
+* clone (optional) - optional clone function to be applied to this scope only. By default inherits the root clone function.
+* equals (optional) - optional equivalence function to be applied to this scope only. By default inherits the root equals function.
 
 ###Returns
 A state object scoped to the key of the parent scope
 
 ##Patch
-Update the state based on a diff. Will not emit events.
+Update the state based on a diff. Will not emit diff events, but will emit change events. Not meant to be called
+directly by user, but used with the "diff" event.
 
-```var result = state.update(key,value)```
+```var result = state.patch({method,path,value})```
 
 ###Parameters
-* key (optional) - They key to set, if null will apply to root 
-* value (optional) - A value to set, if null will delete key
+* An object with the following keys
+  - method - can be "set" or "delete" as a string.
+  - path - the path relative to root which is being modified.
+  - value - the value which is changing at the path.
 
 ###Returns
 null
@@ -320,7 +328,7 @@ null
 
 ##Change
 Anytime there is a potential state change this event is emitted   
-```state.on('change',function(state,key,value){ })```
+```state.on('change',function(value,key,state){ })```
 
 ###Parameters
 * state - a representation of the state with clone applied from the root of current scope

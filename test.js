@@ -15,7 +15,7 @@ test('statesync',function(t){
   })
   t.test('get state',function(t){
     var result = state.get('test')
-    console.log(result)
+    // console.log(result)
     t.equal('test',result)
     t.end()
   })
@@ -93,8 +93,8 @@ test('statesync',function(t){
       t.plan(1)
       var state = State()
       var scope = state.scope()
-      state.on('change',function(state){
-        t.ok(state)
+      state.on('change',function(value){
+        t.equal(true,value)
       })
       scope.set('event',true)
     })
@@ -102,8 +102,8 @@ test('statesync',function(t){
       t.plan(1)
       var state = State()
       var scope = state.scope()
-      state.on('change',function(state){
-        t.ok(state)
+      state.on('change',function(value){
+        t.equal(true,value)
       })
       scope.set('some.deep.value',true)
     })
@@ -114,7 +114,7 @@ test('statesync',function(t){
       var s1 = State(s1Pointer)
       var s2 = State()
 
-      s1.on('change',function(state,path,value){
+      s1.on('change',function(value,path,state){
         t.deepEqual(state,s1Pointer)
         t.ok(state === s1Pointer)
       })
@@ -125,6 +125,7 @@ test('statesync',function(t){
       s1.set('s1',true)
       s2.set('s2',true)
       s1.set('blah',1)
+      s2.set('blah',2)
       s2.set('blah',2)
       s1.delete('s2')
       t.equal(s1.get('blah'),2)

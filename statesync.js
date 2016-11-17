@@ -5,12 +5,13 @@ var Emitter = require('events')
 module.exports = Root
 
 //internal functions to manipulate state
-function Root(state,clone){
+function Root(state,clone,equals){
   //state tree
   state = state || {}
   assert(lodash.isObject(state),'state must be null or an object')
   //clone function for cloning values to and from state
   clone = clone || function(x){return x}
+  equals = equals || function(x,y){ return x === y }
   assert(lodash.isFunction(clone),'clone must be null or a function')
 
   var methods = new Emitter()
@@ -45,7 +46,7 @@ function Root(state,clone){
     }
   }
 
-  methods.set = function(path,value,emit){
+  methods.set = function(path,value,emitchange,emitdiff){
     if(lodash.isEmpty(path)){
       //replaces state object, use at risk
       state = value
@@ -53,41 +54,47 @@ function Root(state,clone){
       lodash.set(state,path,value)
     }
 
-    if(emit){
+    if(emitchange){
       emitChange(path) 
+    }
+    if(emitdiff){
       emitDiff('set',path,value) 
     }
     return value
   }
 
-  methods.delete = function(path,emit){
+  //value parameter added to keep same signature as set,required for patch to work
+  methods.delete = function(path,value,emitchange,emitdiff){
     if(lodash.isEmpty(path)){
       //clear state without replacing object
       clear(state)
     }else{
       lodash.unset(state,path)
     }
-    if(emit){
+    if(emitchange){
       emitChange(path,null)
+    }
+    if(emitdiff){
       emitDiff('delete',path) 
+
     }
   }
 
   methods.patch = function(diff){
-    return methods[diff.method](diff.path,diff.value,false)
+    return methods[diff.method](diff.path,diff.value,true,false)
   }
 
-  methods.scope = function(path,value){
-    var scope = Scope(methods,path,clone)
+  methods.scope = function(path,value,cl,eq){
+    var scope = Scope(methods, path, cl || clone,eq || equals)
     methods.set(path,value || methods.get(path))
     return scope
   }
 
-  return methods.scope([],state)
+  return methods.scope([],state,clone,equals)
 
 }
 //this is the api users interact with
-function Scope(root,base,clone){
+function Scope(root,base,clone,equals){
   assert(root,'requires state root')
   base = parsePath(base)
   // var methods = new Emitter()
@@ -103,7 +110,7 @@ function Scope(root,base,clone){
     //emit appropriate events
     path = wasPathTouched(path,base)
     if(path == false) return
-    methods.emit('change',methods.get(),path,methods.get(path))
+    methods.emit('change',methods.get(path),path,methods.get())
   }
 
   function handleRootDiff(action){
@@ -168,16 +175,22 @@ function Scope(root,base,clone){
   methods.set = function(path,value){
     path = pathWithBase(path)
     value = clone(value)
-    return root.set(path,value,true)
+    if(equals(value,root.get(path))){
+      return value
+    }
+    return root.set(path,value,true,true)
   }
 
   methods.delete = function(path){
     path = pathWithBase(path)
-    return root.delete(path,true)
+    return root.delete(path,null,true,true)
   }
 
   methods.patch =  function(diff){
     diff.path = pathWithBase(diff.path)
+    if(equals(diff.value,root.get(diff.path))){
+      return diff.value
+    }
     return root.patch(diff)
   }
 
