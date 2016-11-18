@@ -60,7 +60,7 @@ Unsubscribe with .removeListener.
 
 ```js
   //trigger this only once then unsubscribe
-  state.once('change',function(state,key,value){
+  state.once('change',function(value,key,state){
     //state is the entire state from root 
     assert.deepEqual(state,{ greeting:'hello' })
 
@@ -104,7 +104,7 @@ You should not mutate this object!
   //first parameter will let you keep handle to internal state for read only purposes
   var state = State(statePointer)
 
-  state.once('change',function(state,key,value){
+  state.once('change',function(value,key,state){
     //state is the same as our statePointer
     assert.deepEqual(state,statePointer)
     assert.equal(state.read,'me')
@@ -142,7 +142,7 @@ if this mutability is a problem.
   //second parameter is a custom clone function which gets applied to all gets, sets, deletes and events
   var state = State(null,lodash.cloneDeep)
 
-  state.on('change',function(state,key,value){
+  state.on('change',function(value,key,state){
     assert.deepEqual(languages,state.languages)
     assert.notEqual(languages, state.languages)
     assert.equal(key,'languages')
