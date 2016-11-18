@@ -96,7 +96,7 @@ function Root(state,clone,equals){
 //this is the api users interact with
 function Scope(root,base,clone,equals){
   assert(root,'requires state root')
-  base = parsePath(base)
+  base = lodash.toPath(base)
   // var methods = new Emitter()
 
   function methods(path,defaultValue){
@@ -143,16 +143,9 @@ function Scope(root,base,clone,equals){
     return false
   }
 
-  function parsePath(path){
-    assert(lodash.isNil(path) || 
-          lodash.isArray(path) ||
-          lodash.isString(path),
-          'path must be array, string, or null')
-    return lodash.toPath(path)
-  }
   //concat base with path
   function pathWithBase(path){
-    path = parsePath(path)
+    path = lodash.toPath(path)
     if(lodash.isEmpty(path)) return base
     if(lodash.isEmpty(base)) return path
     return lodash.concat(base,path)
