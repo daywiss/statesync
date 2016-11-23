@@ -46,6 +46,25 @@ test('statesync',function(t){
     t.notOk(state.get(key))
     t.end()
   })
+  t.test('events',function(t){
+    t.test('root path event',function(t){
+      t.plan(1)
+      state.once(['blah'],t.ok)
+      state.set('blah','some value')
+    })
+    t.test('root event',function(t){
+      t.plan(1)
+      state.once('change',t.ok)
+      state.set('blah','root event')
+    })
+    t.test('scope event',function(t){
+      t.plan(2)
+      var scope = state.scope('blah')
+      scope.once(['child'],t.ok)
+      scope.once('change',t.ok)
+      state.set('blah.child','some value')
+    })
+  })
   t.test('scope',function(t){
     var scope = null
     t.test('init',function(t){
