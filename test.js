@@ -48,9 +48,13 @@ test('statesync',function(t){
   })
   t.test('events',function(t){
     t.test('root path event',function(t){
-      t.plan(1)
+      t.plan(3)
       state.once(['blah'],t.ok)
       state.set('blah','some value')
+      state.once(['blah'],t.ok)
+      state.set('blah.nested','some nested value')
+      state.once(['blah','nested'],t.ok)
+      state.set('blah.nested.deeper.deeper','deep')
     })
     t.test('root event',function(t){
       t.plan(1)
@@ -63,6 +67,11 @@ test('statesync',function(t){
       scope.once(['child'],t.ok)
       scope.once('change',t.ok)
       state.set('blah.child','some value')
+    })
+    t.test('me',function(t){
+      t.plan(1)
+      state.once(['me'],t.ok)
+      state.set('me',{a:'object'})
     })
   })
   t.test('scope',function(t){
@@ -112,7 +121,7 @@ test('statesync',function(t){
       t.plan(1)
       var state = State()
       var scope = state.scope()
-      state.on('change',function(value){
+      state.on('change',function(s,value,path){
         t.equal(true,value)
       })
       scope.set('event',true)
@@ -121,7 +130,7 @@ test('statesync',function(t){
       t.plan(1)
       var state = State()
       var scope = state.scope()
-      state.on('change',function(value){
+      state.on('change',function(s,value,path){
         t.equal(true,value)
       })
       scope.set('some.deep.value',true)
@@ -133,7 +142,7 @@ test('statesync',function(t){
       var s1 = State(s1Pointer)
       var s2 = State()
 
-      s1.on('change',function(value,path,state){
+      s1.on('change',function(state,value,path){
         t.deepEqual(state,s1Pointer)
         t.ok(state === s1Pointer)
       })

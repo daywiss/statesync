@@ -110,15 +110,22 @@ function Scope(root,base,clone,equals){
     //emit appropriate events
     path = wasPathTouched(path,base)
     if(path == false) return
-    methods.emit('change',methods.get(path),path,methods.get())
+    methods.emit('change',methods.get(),methods.get(path),path)
+    emitOnAllPaths(path)
+  }
+
+  function emitOnAllPaths(path){
+    if(!lodash.isEmpty(methods.listeners(path))){
+      methods.emit(path,methods.get(path),path)
+    }
+    if(lodash.isEmpty(path)) return 
+    emitOnAllPaths(path.slice(0,-1))
   }
 
   function handleRootDiff(action){
     var path = wasPathTouched(action.path,base)
     if(path == false) return
-    var value = methods.get(path)
-    methods.emit('diff',{ method:action.method,path:path,value:value})
-    methods.emit(path,value,path)
+    methods.emit('diff',{method:action.method,path:path,value:action.value})
   }
 
   root.on('change',handleRootChange)
