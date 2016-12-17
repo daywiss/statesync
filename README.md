@@ -1,5 +1,5 @@
 #State Sync
-Light weight syncronous global state manager using just lodash and a javascript object.
+Light weight syncronous global state manager using just lodash and a javascript object. 
 
 #Installation
 ```npm install --save statesync```
@@ -12,10 +12,7 @@ Light weight syncronous global state manager using just lodash and a javascript 
   var assert = require('assert')
 
   var state = State()
-
-  //set some key value
   var value = state.set('key','value')
-
   //get the value
   assert.equal(state.get('key'),value)
   //this is equivalent to get
@@ -32,12 +29,14 @@ Light weight syncronous global state manager using just lodash and a javascript 
   
   //clear all keys in state
   state.delete()
+  t.end()
 
 ```
 ##Deep Inspection
 Get Set and Delete use lodash's get set and unset methods which means accessing parameters has the same
 rules.
 ```js
+  var state = State()
   //set some key value
   state.set('this.is.a.deep.value','true')
 
@@ -51,6 +50,7 @@ rules.
 
   //delete the key value
   state.delete('this.is.a.deep.value')
+  t.end()
 ```
 
 ##Events
@@ -59,13 +59,14 @@ or listen to the particular keys you are interested in.
 Unsubscribe with .removeListener.
 
 ```js
+  var state = State()
   //trigger this only once then unsubscribe
-  state.once('change',function(value,key,state){
+  state.once('change',function(state,value,key){
     //state is the entire state from root 
     assert.deepEqual(state,{ greeting:'hello' })
 
     //key is the key path which was changed, as an array
-    assert.deepEqual(key,['greeting']
+    assert.deepEqual(key,['greeting'])
 
     //value is the value that changed at the key
     assert.equal(value,'hello')
@@ -96,38 +97,38 @@ First paramter allows you to initize state and maintain a reference to the raw o
 You should not mutate this object!
 
 ```js
-  //state pointer will remain a reference to the internal state object
-  var statePointer = {
-    created:Date.now()  //any initialized data can be placed here
-  }
+    //state pointer will remain a reference to the internal state object
+    var statePointer = {
+      created:Date.now()  //any initialized data can be placed here
+    }
 
-  //first parameter will let you keep handle to internal state for read only purposes
-  var state = State(statePointer)
+    //first parameter will let you keep handle to internal state for read only purposes
+    var state = State(statePointer)
 
-  state.once('change',function(value,key,state){
-    //state is the same as our statePointer
-    assert.deepEqual(state,statePointer)
-    assert.equal(state.read,'me')
-    assert.equal(key,'read')
-    assert.equal(value,'me')
-    assert(state===statePointer)
-  })
+    state.once('change',function(state,value,key){
+      //state is the same as our statePointer
+      assert.deepEqual(state,statePointer)
+      assert.equal(state.read,'me')
+      assert.equal(key,'read')
+      assert.equal(value,'me')
+      assert(state===statePointer)
+    })
 
-  state.set('read','me')
+    state.set('read','me')
 
-  //set has the ability to overwrite the root object with whatever value you want
-  //but you will lose your external reference
-  state.set(null,{})
+    //set has the ability to overwrite the root object with whatever value you want
+    //but you will lose your external reference
+    state.set(null,{})
 
-  assert(statePointer !== state())
+    assert(statePointer !== state())
 
-  //so get it back using root()
-  statePointer = state.root()
+    //so get it back using root()
+    statePointer = state.root()
 
-  //if you only want to clear all properties from 
-  //the root object without losing external reference it, use delete()
+    //if you only want to clear all properties from 
+    //the root object without losing external reference it, use delete()
 
-  state.delete()
+    state.delete()
 
 ```
 
@@ -142,7 +143,7 @@ if this mutability is a problem.
   //second parameter is a custom clone function which gets applied to all gets, sets, deletes and events
   var state = State(null,lodash.cloneDeep)
 
-  state.on('change',function(value,key,state){
+  state.on('change',function(state,value,key){
     assert.deepEqual(languages,state.languages)
     assert.notEqual(languages, state.languages)
     assert.equal(key,'languages')
@@ -168,8 +169,8 @@ Changes to child or parents will emit the appropriate events relative to their s
 
 ```js
   var defaultState = {
-    redteam:{}
-    blueteam:{}
+    redteam:{},
+    blueteam:{},
     hiddencolor:{
       yellowteam:{}
     }
@@ -189,7 +190,7 @@ Changes to child or parents will emit the appropriate events relative to their s
   //unless a clone function is supplied
   assert.deepEqual(redteam.get(),defaultState.redteam)
   assert.deepEqual(blueteam.get(),defaultState.blueteam)
-  
+
   //this is allowed because child scope listens for changes on parent when it affects its root
   state.set('redteam',{votes:12})
   //this is also ok
@@ -201,7 +202,7 @@ Changes to child or parents will emit the appropriate events relative to their s
 
   //yellow teams parent property, "hiddencolor" was overriden, and now will be undefined
   assert.equal(yellowteam(),null)
-  
+
 ```
 
 ##Replication
@@ -230,14 +231,14 @@ You could easily replicate between processes or from server to web client.
 ```var State = require('statesync')```
 
 ##Initialize
-```var state = State(default,clone)```
+```var state = State(default,clone,equality)```
 
 ###Parameters
 * default (optional) - An object which acts as a handle to internal state as well as initialization.    
   defaults to ```{}```
 * clone (optional) - A syncronous function which returns a cloned object, like lodash.cloneDeep.    
   defaults to: ``` function(x){ return x } ```
-* equals (optional) - A syncronous function which returns if 2 values are equal, like lodash.isEqual.    
+* equality (optional) - A syncronous function which returns if 2 values are equal, like lodash.isEqual.    
   defaults to: ``` function(x,y){ return x === y } ```
 
 ###Returns
@@ -327,13 +328,14 @@ null
 #Events
 
 ##Change
-Anytime there is a potential state change this event is emitted   
-```state.on('change',function(value,key,state){ })```
+Anytime there is a potential state change this event is emitted relative to the root of the state object.
+This gets fired before key path event. 
+```state.on('change',function(state,value,[key]){ })```
 
 ###Parameters
 * state - a representation of the state with clone applied from the root of current scope
-* key - the key which was called as an array
-* value - the value which was called with clone applied, null if deleted
+* key - the key path which was called to trigger the event as an array, relative to the scopes root
+* value - the value which caused the change, passed with clone applied, null if deleted
 
 ##Diff
 Anytime there is a potential state change this event is emitted, use in conjuction
@@ -352,10 +354,10 @@ with patch. Not normally used directly.
 
 ##['some','key']
 Events will be emitted on specific keys which sets and deletes happen. You must use
-the key array notation for listening to property changes on the state.
+the key array notation for listening to property changes on the state. This gets fired after change event.
 
 ```state.on(['some','key'],function(value,key){ })```
-* value - value which was called relative to root of current scope
-* key - the key which was called as an array
+* value - the value that changed, with clone applied, relative to the key path of the event
+* key - the key which caused the event, will be identical to key path of the event
 
 
