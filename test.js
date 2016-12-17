@@ -73,6 +73,18 @@ test('statesync',function(t){
       state.once(['me'],t.ok)
       state.set('me',{a:'object'})
     })
+    t.test('delete',function(t){
+      var state = State({blah:'blah'})
+      t.plan(1)
+      state.on('change',t.ok)
+      state.delete()
+    })
+    t.test('null root',function(t){
+      var state = State({blah:'blah'})
+      t.plan(1)
+      state.on('change',t.ok)
+      state.set([],null)
+    })
   })
   t.test('scope',function(t){
     var scope = null

@@ -109,7 +109,7 @@ function Scope(root,base,clone,equals){
     //check if path affects us
     //emit appropriate events
     path = wasPathTouched(path,base)
-    if(path == false) return
+    if(path === false) return
     methods.emit('change',methods.get(),methods.get(path),path)
     emitOnAllPaths(path)
   }
