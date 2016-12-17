@@ -1,6 +1,6 @@
 {
   "name": "statesync",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Light weight syncronous global state manager using just lodash and a javascript object.",
   "keywords": ["state","state manager","cache","react",
                "flux","functional","data","data model",
