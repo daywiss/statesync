@@ -17,8 +17,8 @@ function Root(state,clone,equals){
   var methods = new Emitter()
   var children = {}
 
-  function emitChange(path){
-    methods.emit('change',path)
+  function emitChange(path,value){
+    methods.emit('change',path,value)
   }
   function emitDiff(method,path,value){
     methods.emit('diff',{ method:method,path:path,value:value })
@@ -55,7 +55,7 @@ function Root(state,clone,equals){
     }
 
     if(emitchange){
-      emitChange(path) 
+      emitChange(path,value) 
     }
     if(emitdiff){
       emitDiff('set',path,value) 
@@ -111,15 +111,15 @@ function Scope(root,base,clone,equals){
     path = wasPathTouched(path,base)
     if(path === false) return
     methods.emit('change',methods.get(),methods.get(path),path)
-    emitOnAllPaths(path,value)
+    emitOnAllPaths(path,value,path)
   }
 
-  function emitOnAllPaths(path,value){
+  function emitOnAllPaths(path,value,originalpath){
     if(!lodash.isEmpty(methods.listeners(path))){
-      methods.emit(path,methods.get(path),value,path)
+      methods.emit(path,methods.get(path),value,originalpath)
     }
     if(lodash.isEmpty(path)) return 
-    emitOnAllPaths(path.slice(0,-1))
+    emitOnAllPaths(path.slice(0,-1),value,originalpath)
   }
 
   function handleRootDiff(action){

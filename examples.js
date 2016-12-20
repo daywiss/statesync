@@ -59,10 +59,12 @@ test('examples',function(t){
 
     //to listen to a key path, use array notation
     //this will emit any time this path, or subpath changes
-    state.on(['deep','key'],function(value,key){
+    state.on(['deep','key'],function(state,value,key){
 
       //value which was changed at path
-      assert.equal(value,'secret')
+      assert.equal(state,'secret')
+      //in this case the value that caused emit is the same as the value of the path
+      assert.equal(value,state)
 
       //key path which changed, as an array
       assert(key,['deep','key'])

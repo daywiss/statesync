@@ -74,10 +74,12 @@ Unsubscribe with .removeListener.
 
   //to listen to a key path, use array notation
   //this will emit any time this path, or subpath changes
-  state.on(['deep','key'],function(value,key){
+  state.on(['deep','key'],function(state,value,key){
 
     //value which was changed at path
-    assert.equal(value,'secret')
+    assert.equal(state,'secret')
+    //in this case the value that caused emit is the same as the value of the path
+    assert.equal(value,state)
 
     //key path which changed, as an array
     assert(key,['deep','key'])
@@ -356,8 +358,9 @@ with patch. Not normally used directly.
 Events will be emitted on specific keys which sets and deletes happen. You must use
 the key array notation for listening to property changes on the state. This gets fired after change event.
 
-```state.on(['some','key'],function(value,key){ })```
-* value - the value that changed, with clone applied, relative to the key path of the event
-* key - the key which caused the event, will be identical to key path of the event
+```state.on(['some','key'],function(state,value,key){ })```
+* state - state at key path "some.key" with clone applied
+* value - the value that changed which caused the event, with clone applied, may or may not differ from state
+* key - the key which caused the event, will be key path, or a sub path of key path.
 
 
