@@ -82,7 +82,7 @@ test('statesync',function(t){
     t.test('null root',function(t){
       var state = State({blah:'blah'})
       t.plan(1)
-      state.on('change',t.ok)
+      state.on('change',t.notOk)
       state.set([],null)
     })
   })

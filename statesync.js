@@ -11,7 +11,7 @@ function Root(state,clone,equals){
   assert(lodash.isObject(state),'state must be null or an object')
   //clone function for cloning values to and from state
   clone = clone || function(x){return x}
-  equals = equals || function(x,y){ return x === y }
+  equals = equals || lodash.stubFalse
   assert(lodash.isFunction(clone),'clone must be null or a function')
 
   var methods = new Emitter()
@@ -111,12 +111,12 @@ function Scope(root,base,clone,equals){
     path = wasPathTouched(path,base)
     if(path === false) return
     methods.emit('change',methods.get(),methods.get(path),path)
-    emitOnAllPaths(path)
+    emitOnAllPaths(path,value)
   }
 
-  function emitOnAllPaths(path){
+  function emitOnAllPaths(path,value){
     if(!lodash.isEmpty(methods.listeners(path))){
-      methods.emit(path,methods.get(path),path)
+      methods.emit(path,methods.get(path),value,path)
     }
     if(lodash.isEmpty(path)) return 
     emitOnAllPaths(path.slice(0,-1))
