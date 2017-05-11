@@ -1,12 +1,12 @@
-#State Sync
+# State Sync
 Light weight syncronous global state manager using just lodash and a javascript object. 
 
-#Installation
+# Installation
 ```npm install --save statesync```
 
-#Usage
+# Usage
 
-##Basic Case
+## Basic Case
 ```js
   var State = require('statesync')
   var assert = require('assert')
@@ -32,7 +32,7 @@ Light weight syncronous global state manager using just lodash and a javascript 
   t.end()
 
 ```
-##Deep Inspection
+## Deep Inspection
 Get Set and Delete use lodash's get set and unset methods which means accessing parameters has the same
 rules.
 ```js
@@ -53,7 +53,7 @@ rules.
   t.end()
 ```
 
-##Events
+## Events
 The state object is a node event emitter, so that api is the same, subscribe with .on or .once, and listen for a 'change' event
 or listen to the particular keys you are interested in.
 Unsubscribe with .removeListener.
@@ -92,9 +92,9 @@ Unsubscribe with .removeListener.
 ```
   
 
-#Advanced Usage
+# Advanced Usage
 
-##Initialize Internal State
+## Initialize Internal State
 First paramter allows you to initize state and maintain a reference to the raw object as it is mutated through the state class.  
 You should not mutate this object!
 
@@ -134,7 +134,7 @@ You should not mutate this object!
 
 ```
 
-##Immutability
+## Immutability
 Values which are passed into the state class are mutable outside of the class which could
 corrupt the internal state. Add custom clone function
 if this mutability is a problem.
@@ -164,7 +164,7 @@ if this mutability is a problem.
 
 ```
 
-##Sub states or Scopes
+## Sub states or Scopes
 Scope from the root state or any child state as many times as you want. Useful if you only want a subsection of your state tree to
 be accessible. Child scopes will be referencing values from the root object so they will always be consistent.
 Changes to child or parents will emit the appropriate events relative to their scope. 
@@ -207,7 +207,7 @@ Changes to child or parents will emit the appropriate events relative to their s
 
 ```
 
-##Replication
+## Replication
 You can replicate states directly or with some transport layer. Keep in mind The change feeds are very course, not optimized for size.
 You could easily replicate between processes or from server to web client.
 
@@ -227,39 +227,39 @@ You could easily replicate between processes or from server to web client.
 
 ```
 
-#API
+# API
 
-##Require
+## Require
 ```var State = require('statesync')```
 
-##Initialize
+## Initialize
 ```var state = State(default,clone,equality)```
 
-###Parameters
+### Parameters
 * default (optional) - An object which acts as a handle to internal state as well as initialization.    
   defaults to ```{}```
 * clone (optional) - A syncronous function which returns a cloned object, like lodash.cloneDeep.    
   defaults to: ``` function(x){ return x } ```
 * equality (optional) - A syncronous function which returns if 2 values are equal, like lodash.isEqual.    
   defaults to: ``` function(x,y){ return x === y } ```
-
-###Returns
+ 
+### Returns
 a state object
 
-##Set
+## Set
 Set a value on the state. Use lodash "set" notation to access deep properties.
 Will emit a change and diff event on every call.   
 ```var result = state.set(key,value)```
 
-###Parameters
+### Parameters
 * key (optional) - They key to set, if null, will replace the root of the current scope. This will also invalidate 
 any external reference, so it is not recommended to do so use at own risk.
 * value (optional) - A value to set, if not provided will set key to null or undefined.
 
-###Returns
+### Returns
 the value which was passed with clone applied
 
-##Get
+## Get
 Get a value on the state. Use lodash "get" notation to access deep properties.     
 
 ```js
@@ -268,78 +268,78 @@ var result = state(key,defaultValue)
 
 ```
 
-###Parameters
+### Parameters
 * key (optional) - They key to get, if null will apply to root 
 * defaultValue (optional) - The value to return if key not found, default: undefined   
 
-###Returns
+### Returns
 the value at that key with clone applied, or defaultValue if not found
 
-##Delete
+## Delete
 Delete a value on the state. Use lodash "unset" notation to access deep properties.
 Will emit a change and diff event on every call.   
 ```var result = state.delete(key)```
 
-###Parameters
+### Parameters
 * key (optional) - They key to delete, if not provided will clear all properties from the root of the current scope. 
 Will not invalidate external handles to state.
 
-###Returns
+### Returns
 nothing
 
-##Scope
+## Scope
 Scope your visibility to a subtree of the parent scope. Can be called on child as well. All scopes
 will respond to changes from any other scope if it affects their path/key by emitting the appropriate
 events.
 
 ```var result = state.scope(key)```
 
-###Parameters
+### Parameters
 * key (optional) - They key to scope the child to, if null will be equal to parent
 * value (optional) - They value to set this key to. If null, keeps the existing value at the key path. 
 * clone (optional) - optional clone function to be applied to this scope only. By default inherits the root clone function.
 * equals (optional) - optional equivalence function to be applied to this scope only. By default inherits the root equals function.
 
-###Returns
+### Returns
 A state object scoped to the key of the parent scope
 
-##Patch
+## Patch
 Update the state based on a diff. Will not emit diff events, but will emit change events. Not meant to be called
 directly by user, but used with the "diff" event.
 
 ```var result = state.patch({method,path,value})```
 
-###Parameters
+### Parameters
 * An object with the following keys
   - method - can be "set" or "delete" as a string.
   - path - the path relative to root which is being modified.
   - value - the value which is changing at the path.
 
-###Returns
+### Returns
 null
 
-##Disconnect
+## Disconnect
 Removes all listeners from this state and will stop emitting events.
 
-###Parameters
+### Parameters
 none
 
-###Returns
+### Returns
 null
 
-#Events
+# Events
 
-##Change
+## Change
 Anytime there is a potential state change this event is emitted relative to the root of the state object.
 This gets fired before key path event. 
 ```state.on('change',function(state,value,[key]){ })```
 
-###Parameters
+### Parameters
 * state - a representation of the state with clone applied from the root of current scope
 * key - the key path which was called to trigger the event as an array, relative to the scopes root
 * value - the value which caused the change, passed with clone applied, null if deleted
 
-##Diff
+## Diff
 Anytime there is a potential state change this event is emitted, use in conjuction
 with patch. Not normally used directly.     
 ```state.on('diff',function(action){ })```    
@@ -354,7 +354,7 @@ with patch. Not normally used directly.
   }
 ```
 
-##['some','key']
+## ['some','key']
 Events will be emitted on specific keys which sets and deletes happen. You must use
 the key array notation for listening to property changes on the state. This gets fired after change event.
 
