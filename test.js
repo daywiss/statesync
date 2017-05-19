@@ -85,6 +85,20 @@ test('statesync',function(t){
       state.on('change',t.notOk)
       state.set([],null)
     })
+    //test fails, need node 6 event emitter to fix
+    // t.test('parent change child event',function(t){
+    //   var state = State({teams:{
+    //     red:4,blue:3,green:4
+    //   }})
+      
+    //   t.plan(3)
+
+    //   state.on(['teams','green'],t.ok)
+    //   state.on(['teams','red'],t.ok)
+    //   state.on(['teams','blue'],t.ok)
+
+    //   state.set('teams',{})
+    // })
   })
   t.test('scope',function(t){
     var scope = null
