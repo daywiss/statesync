@@ -1,6 +1,22 @@
 var assert = require('assert')
-var lodash = require('lodash')
 var Emitter = require('events')
+
+//include only functions used. help client side builds.
+var lodash = {
+  get:require('lodash/get'),
+  set:require('lodash/set'),
+  unset:require('lodash/unset'),
+  isObject:require('lodash/isObject'),
+  isFunction:require('lodash/isFunction'),
+  isArray:require('lodash/isArray'),
+  isEmpty:require('lodash/isEmpty'),
+  keys:require('lodash/keys'),
+  each:require('lodash/each'),
+  stubFalse:require('lodash/stubFalse'),
+  toPath:require('lodash/toPath'),
+  concat:require('lodash/concat'),
+  merge:require('lodash/merge'),
+}
 
 module.exports = Root
 
@@ -25,7 +41,8 @@ function Root(state,clone,equals){
   }
 
   function clear(object){
-    lodash(object).keys().each(function(key){
+    var keys = lodash.keys(object)
+    lodash.each(keys,function(key){
       lodash.unset(object,key)
     })
   }
