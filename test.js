@@ -214,6 +214,46 @@ test('statesync',function(t){
       t.deepEqual(state.get(),{})
       t.end()
     })
+    t.test('updating scope child set',function(t){
+      var state = State({a:1,b:{}})
+      var child = state.scope('b')
+      t.plan(3)
+      state.on('diff',function(diff){
+        t.equal(diff.method,'set')
+        t.deepEqual(diff.path,['b','c'])
+        t.equal(diff.value,'test')
+      })
+      child.set('c','test')
+      t.end()
+    })
+    t.test('updating scope child delete',function(t){
+      var state = State({a:1,b:{}})
+      var child = state.scope('b',{c:'test'})
+      t.plan(2)
+      state.on('diff',function(diff){
+        t.equal(diff.method,'delete')
+        t.deepEqual(diff.path,['b','c'])
+      })
+      child.delete('c')
+      t.end()
+    })
+    t.test('updating disconnected scopes',function(t){
+      var statea = State({a:1,b:{}})
+      var stateb = State({})
+
+      var scope = statea.scope('b')
+
+      stateb.on('diff',scope.patch)
+
+      scope.set([],{c:'test'})
+      scope.set('d',{})
+      scope.set('d',{e:'deep'})
+
+      t.equal(statea.get('b.c'),'test')
+      t.equal(statea.get('b.d.e'),'deep')
+
+      t.end()
+    })
   })
   t.test('internal pointer',function(t){
     var ptr = {test:'test'}
