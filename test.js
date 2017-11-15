@@ -245,9 +245,10 @@ test('statesync',function(t){
 
       stateb.on('diff',scope.patch)
 
-      scope.set([],{c:'test'})
+      scope.set(null,{c:'test'})
       scope.set('d',{})
       scope.set('d',{e:'deep'})
+
 
       t.equal(statea.get('b.c'),'test')
       t.equal(statea.get('b.d.e'),'deep')

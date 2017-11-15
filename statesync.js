@@ -154,7 +154,7 @@ function Scope(root,base,clone,equals){
 
   function handleRootDiff(action){
     var path = wasPathTouched(action.path,base)
-    if(path == false) return
+    if(path === false) return
     methods.emit('diff',{method:action.method,path:path,value:action.value})
   }
 
