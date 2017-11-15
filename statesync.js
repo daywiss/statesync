@@ -97,8 +97,9 @@ function Root(state,clone,equals){
     }
   }
 
-  methods.patch = function(diff){
-    return methods[diff.method](diff.path,diff.value,true,false)
+  methods.patch = function(diff,emitDiff){
+    emitDiff = emitDiff || false
+    return methods[diff.method](diff.path,diff.value,true,emitDiff)
   }
 
   methods.scope = function(path,value,cl,eq){
@@ -131,12 +132,24 @@ function Scope(root,base,clone,equals){
     emitOnAllPaths(path,value,path)
   }
 
+  //emit on to every listener
   function emitOnAllPaths(path,value,originalpath){
-    if(!lodash.isEmpty(methods.listeners(path))){
-      methods.emit(path,methods.get(path),value,originalpath)
+    //eventNames only available in node > 6
+    if(methods.eventNames){
+      lodash.each(methods.eventNames(),function(name){
+        //ignore diff and change listeners
+        if(name === 'change') return
+        if(name === 'diff') return
+        methods.emit(name,methods.get(path),value,originalpath)
+      })
+    }else{
+      //fallback to non exhaustive emit
+      if(!lodash.isEmpty(methods.listeners(path))){
+        methods.emit(path,methods.get(path),value,originalpath)
+      }
+      if(lodash.isEmpty(path)) return 
+      emitOnAllPaths(path.slice(0,-1),value,originalpath)
     }
-    if(lodash.isEmpty(path)) return 
-    emitOnAllPaths(path.slice(0,-1),value,originalpath)
   }
 
   function handleRootDiff(action){
@@ -208,7 +221,7 @@ function Scope(root,base,clone,equals){
     if(equals(diff.value,root.get(diff.path))){
       return diff.value
     }
-    return root.patch(diff)
+    return root.patch(diff,true)
   }
 
   methods.scope = function(path,value){

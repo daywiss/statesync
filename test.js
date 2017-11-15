@@ -1,4 +1,5 @@
 var test = require('tape')
+var lodash = require('lodash')
 var State = require('.')
 
 test('statesync',function(t){
@@ -86,19 +87,19 @@ test('statesync',function(t){
       state.set([],null)
     })
     //test fails, need node 6 event emitter to fix
-    // t.test('parent change child event',function(t){
-    //   var state = State({teams:{
-    //     red:4,blue:3,green:4
-    //   }})
+    t.test('parent change child event',function(t){
+      var state = State({teams:{
+        red:4,blue:3,green:4
+      }})
       
-    //   t.plan(3)
+      t.plan(3)
 
-    //   state.on(['teams','green'],t.ok)
-    //   state.on(['teams','red'],t.ok)
-    //   state.on(['teams','blue'],t.ok)
+      state.on(['teams','green'],t.ok)
+      state.on(['teams','red'],t.ok)
+      state.on(['teams','blue'],t.ok)
 
-    //   state.set('teams',{})
-    // })
+      state.set('teams',{})
+    })
   })
   t.test('scope',function(t){
     var scope = null
@@ -165,7 +166,7 @@ test('statesync',function(t){
   t.test('diff/patch',function(t){
     t.test('example',function(t){
       var s1Pointer = {}
-      var s1 = State(s1Pointer)
+      var s1 = State(s1Pointer,null,lodash.isEqual)
       var s2 = State()
 
       s1.on('change',function(state,value,path){
@@ -240,5 +241,20 @@ test('statesync',function(t){
     state.on('diff',t.end)
     t.end()
   })
+  t.test('difference',function(t){
+    var state = null
+    t.test('init',function(t){
+      state = new State({},null,null,function(a,b){
+        console.log(a,b)
+      })
+      t.end()
+    })
+    t.test('diff',function(t){
+      state.set('first',1)
+        t.end()
+    })
+  })
+
+
   
 })
