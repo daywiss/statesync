@@ -241,20 +241,5 @@ test('statesync',function(t){
     state.on('diff',t.end)
     t.end()
   })
-  t.test('difference',function(t){
-    var state = null
-    t.test('init',function(t){
-      state = new State({},null,null,function(a,b){
-        console.log(a,b)
-      })
-      t.end()
-    })
-    t.test('diff',function(t){
-      state.set('first',1)
-        t.end()
-    })
-  })
-
-
   
 })

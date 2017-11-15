@@ -169,6 +169,9 @@ Scope from the root state or any child state as many times as you want. Useful i
 be accessible. Child scopes will be referencing values from the root object so they will always be consistent.
 Changes to child or parents will emit the appropriate events relative to their scope. 
 
+Important to note that you will want to call 'disconnect' to let scope be garbage collected
+when done with it. 
+
 ```js
   var defaultState = {
     redteam:{},
@@ -205,16 +208,25 @@ Changes to child or parents will emit the appropriate events relative to their s
   //yellow teams parent property, "hiddencolor" was overriden, and now will be undefined
   assert.equal(yellowteam(),null)
 
+  //we are done with scope, disconnect for allow it to be garbage
+  blueteam.disconnect()
+  yellowteam.disconnect()
+  redteam.disconnect()
+
 ```
 
 ## Replication
 You can replicate states directly or with some transport layer. Keep in mind The change feeds are very course, not optimized for size.
 You could easily replicate between processes or from server to web client.
 
+Its important to include an equality check function if you have a circular patch, otherwise
+you can get an infinite loop and stack overflow.
+
 ```js
 
-  var server = State()
-  var client = State()
+  //if isEqual is not included, you will get stack overflow since this is a circular patch
+  var server = State({},null,lodash.isEqual)
+  var client = State({},null,lodash.isEqual)
 
   server.on('diff',client.patch)
   client.on('diff',server.patch)
@@ -304,8 +316,9 @@ events.
 A state object scoped to the key of the parent scope
 
 ## Patch
-Update the state based on a diff. Will not emit diff events, but will emit change events. Not meant to be called
-directly by user, but used with the "diff" event.
+Update the state based on a diff. Will now emit diff events and emit change events. Not meant to be called
+directly by user, but used with the "diff" event. If using patch, it is best to include
+an equality check like `lodash.isEqual`.
 
 ```var result = state.patch({method,path,value})```
 
@@ -341,7 +354,9 @@ This gets fired before key path event.
 
 ## Diff
 Anytime there is a potential state change this event is emitted, use in conjuction
-with patch. Not normally used directly.     
+with patch. Not normally used directly. If using diff, it is best to include
+an equality check like `lodash.isEqual`.           
+
 ```state.on('diff',function(action){ })```    
 
 * action - parameter comes as an object      
