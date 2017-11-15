@@ -217,11 +217,17 @@ function Scope(root,base,clone,equals){
   }
 
   methods.patch =  function(diff){
-    diff.path = pathWithBase(diff.path)
-    if(equals(diff.value,root.get(diff.path))){
-      return diff.value
+    var copy = {
+      method: diff.method,
+      path : pathWithBase(diff.path),
+      value : diff.value
     }
-    return root.patch(diff,true)
+
+    if(equals(copy.value,root.get(copy.path))){
+      return copy.value
+    }
+
+    return root.patch(copy,true)
   }
 
   methods.scope = function(path,value){

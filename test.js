@@ -245,10 +245,18 @@ test('statesync',function(t){
 
       stateb.on('diff',scope.patch)
 
-      scope.set(null,{c:'test'})
-      scope.set('d',{})
-      scope.set('d',{e:'deep'})
-
+      // scope.on('diff',function(){
+      //   console.log('scope',arguments)
+      // })
+      // statea.on('diff',function(){
+      //   console.log('statea',arguments)
+      // })              
+      // stateb.on('diff',function(){
+      //   console.log('stateb',arguments)
+      // })              
+      stateb.set(null,{c:'test'})
+      stateb.set('d',{})
+      stateb.set('d',{e:'deep'})
 
       t.equal(statea.get('b.c'),'test')
       t.equal(statea.get('b.d.e'),'deep')
