@@ -302,7 +302,8 @@ nothing
 ## Scope
 Scope your visibility to a subtree of the parent scope. Can be called on child as well. All scopes
 will respond to changes from any other scope if it affects their path/key by emitting the appropriate
-events.
+events. You usually do not want to scope dynamically, but in case you do, use 'disconnect' to
+allow for cleanup. 
 
 ```var result = state.scope(key)```
 
@@ -332,7 +333,8 @@ an equality check like `lodash.isEqual`.
 null
 
 ## Disconnect
-Removes all listeners from this state and will stop emitting events.
+Removes all listeners from this state and will stop emitting events. Also allows scope
+to be cleaned up.
 
 ### Parameters
 none
@@ -345,6 +347,7 @@ null
 ## Change
 Anytime there is a potential state change this event is emitted relative to the root of the state object.
 This gets fired before key path event. 
+
 ```state.on('change',function(state,value,[key]){ })```
 
 ### Parameters

@@ -238,6 +238,7 @@ function Scope(root,base,clone,equals){
   methods.disconnect = function(){
     root.removeListener('diff',handleRootDiff)
     root.removeListener('change',handleRootChange)
+    methods.removeAllListeners()
   }
 
   methods.type = 'statesync'
