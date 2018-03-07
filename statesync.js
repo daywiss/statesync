@@ -5,10 +5,12 @@ var Emitter = require('events')
 var lodash = {
   get:require('lodash/get'),
   set:require('lodash/set'),
+  has:require('lodash/has'),
   unset:require('lodash/unset'),
   isObject:require('lodash/isObject'),
   isFunction:require('lodash/isFunction'),
   isArray:require('lodash/isArray'),
+  isEqual:require('lodash/isEqual'),
   isEmpty:require('lodash/isEmpty'),
   keys:require('lodash/keys'),
   each:require('lodash/each'),
@@ -40,12 +42,16 @@ function Root(state,clone,equals){
     methods.emit('diff',{ method:method,path:path,value:value })
   }
 
+
   function clear(object){
     var keys = lodash.keys(object)
     lodash.each(keys,function(key){
       lodash.unset(object,key)
     })
   }
+
+  methods.emitDiff = emitDiff
+  methods.emitChange = emitChange
 
   methods.has = function(path){
     if(lodash.isEmpty(path)){
@@ -97,6 +103,84 @@ function Root(state,clone,equals){
     }
   }
 
+  methods.push = function(path,value,emitchange,emitdiff){
+    var val = methods.get(path,[])
+    console.log(path,value,val)
+    var result = val.push(value)
+
+    //silently set
+    methods.set(path,val)
+
+    if(emitchange){
+      emitChange(path,val)
+    }
+    if(emitdiff){
+      emitDiff('push',path,value) 
+    }
+
+    return result
+  }
+
+  methods.concat = function(path,value,emitchange,emitdiff){
+    var val = methods.get(path,[])
+    var result = lodash.concat(val,value)
+
+    //silently set
+    methods.set(path,result)
+
+    if(emitchange){
+      emitChange(path,result)
+    }
+    if(emitdiff){
+      emitDiff('concat',path,value) 
+    }
+    return result
+  }
+
+  methods.unshift = function(path,value,emitchange,emitdiff){
+    var val = methods.get(path,[])
+    var result = val.unshift(value)
+
+    //silently set
+    methods.set(path,val)
+
+    if(emitchange){
+      emitChange(path,val)
+    }
+    if(emitdiff){
+      emitDiff('unshift',path,value) 
+    }
+    return result
+  }
+  
+  methods.shift = function(path,value,emitchange,emitdiff){
+    var val = methods.get(path,[])
+    var result = val.shift(value)
+
+    //silently set
+    methods.set(path,val)
+
+    if(emitchange){
+      emitChange(path,val)
+    }
+    if(emitdiff){
+      emitDiff('shift',path,null) 
+    }
+    return result
+  }
+
+  methods.pop = function(path,value,emitchange,emitdiff){
+    var pop = methods.get(path,[]).pop()
+    var val = methods.get(path)
+    if(emitchange){
+      emitChange(path,val)
+    }
+    if(emitdiff){
+      emitDiff('pop',path,null) 
+    }
+    return val
+  }
+
   methods.patch = function(diff,emitDiff){
     emitDiff = emitDiff || false
     return methods[diff.method](diff.path,diff.value,true,emitDiff)
@@ -129,28 +213,38 @@ function Scope(root,base,clone,equals){
     path = wasPathTouched(path,base)
     if(path === false) return
     methods.emit('change',methods.get(),methods.get(path),path)
-    emitOnAllPaths(path,value,path)
-  }
 
-  //emit on to every listener
-  function emitOnAllPaths(path,value,originalpath){
-    //eventNames only available in node > 6
     if(methods.eventNames){
-      lodash.each(methods.eventNames(),function(name){
-        //ignore diff and change listeners
-        if(name === 'change') return
-        if(name === 'diff') return
-        methods.emit(name,methods.get(path),value,originalpath)
-      })
+      emitOnPaths_v2(path,value)
     }else{
-      //fallback to non exhaustive emit
-      if(!lodash.isEmpty(methods.listeners(path))){
-        methods.emit(path,methods.get(path),value,originalpath)
-      }
-      if(lodash.isEmpty(path)) return 
-      emitOnAllPaths(path.slice(0,-1),value,originalpath)
+      emitOnPaths(path,value,path)
     }
   }
+
+  function emitOnPaths_v2(path,value){
+    assert(methods.eventNames,'This function only works in Node v6 or greater')
+    lodash.each(methods.eventNames(),function(name){
+      // console.log('allpaths',nameArray,path)
+      //ignore diff and change listeners
+      if(name === 'change') return
+      if(name === 'diff') return
+      //seems like arrays as events get stringified into comma delim words
+      nameArray = name.split(',')
+      if(wasPathTouched(path,nameArray)){
+        // console.log('nameArray',nameArray,methods.get(name))
+        methods.emit(name,methods.get(nameArray),value,path)
+      }
+    })
+  }
+  function emitOnPaths(path,value,originalPath){
+    //fallback to non exhaustive emit
+    if(!lodash.isEmpty(methods.listeners(path))){
+      methods.emit(path,methods.get(path),value,originalpath)
+    }
+    if(lodash.isEmpty(path)) return 
+    emitOnPaths(path.slice(0,-1),value,originalpath)
+  }
+
 
   function handleRootDiff(action){
     var path = wasPathTouched(action.path,base)
@@ -170,6 +264,7 @@ function Scope(root,base,clone,equals){
   //a path changes on the way to us, but branches of before us, dont emit
   //in all cases i think if one or the other path is consumed, we emit
   function wasPathTouched(path,base){
+    // console.log(path,base)
     //path is empty, which means root was changed
     if(lodash.isEmpty(path)) return base
     //if we are root, then we always change
@@ -216,6 +311,34 @@ function Scope(root,base,clone,equals){
     return root.delete(path,null,true,true)
   }
 
+  methods.push = function(path,value){
+    path = pathWithBase(path)
+    value = clone(value)
+    return root.push(path,value,true,true)
+  }
+
+  methods.pop = function(path){
+    path = pathWithBase(path)
+    return root.pop(path,null,true,true)
+  }
+
+  methods.concat = function(path,value){
+    path = pathWithBase(path)
+    value = clone(value)
+    return root.concat(path,value,true,true)
+  }
+  
+  methods.unshift = function(path,value){
+    path = pathWithBase(path)
+    value = clone(value)
+    return root.unshift(path,value,true,true)
+  }
+
+  methods.shift = function(path){
+    path = pathWithBase(path)
+    return root.shift(path,null,true,true)
+  }
+
   methods.patch =  function(diff){
     var copy = {
       method: diff.method,
@@ -247,7 +370,7 @@ function Scope(root,base,clone,equals){
     methods.removeAllListeners()
   }
 
-  methods.type = 'statesync'
+  methods.statesync = true
 
   methods.path = function(){
     return base

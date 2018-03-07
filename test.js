@@ -57,6 +57,14 @@ test('statesync',function(t){
       state.once(['blah','nested'],t.ok)
       state.set('blah.nested.deeper.deeper','deep')
     })
+    t.test('check data',function(t){
+      state.once(['data'],function(state,value,key){
+        t.equal(state,'test')
+        t.end()
+      })
+      state.set('not','something')
+      state.set('data','test')
+    })
     t.test('root event',function(t){
       t.plan(1)
       state.once('change',t.ok)
@@ -94,9 +102,10 @@ test('statesync',function(t){
       
       t.plan(3)
 
-      state.on(['teams','green'],t.ok)
-      state.on(['teams','red'],t.ok)
-      state.on(['teams','blue'],t.ok)
+      //these are now null
+      state.on(['teams','green'],t.notOk)
+      state.on(['teams','red'],t.notOk)
+      state.on(['teams','blue'],t.notOk)
 
       state.set('teams',{})
     })
@@ -254,14 +263,128 @@ test('statesync',function(t){
       // stateb.on('diff',function(){
       //   console.log('stateb',arguments)
       // })              
-      stateb.set(null,{c:'test'})
-      stateb.set('d',{})
-      stateb.set('d',{e:'deep'})
+      // stateb.set(null,{c:'test'})
+      // stateb.set('d',{})
+      // stateb.set('d',{e:'deep'})
+      stateb.patch({
+        path:null,value:{c:'test'},method:'set'
+      })
+      stateb.patch({
+        path:'d',value:{},method:'set'
+      })
+      stateb.patch({
+        path:'d',value:{e:'deep'},method:'set'
+      })
 
       t.equal(statea.get('b.c'),'test')
       t.equal(statea.get('b.d.e'),'deep')
 
       t.end()
+    })
+  })
+  t.test('arrays',function(t){
+    t.test('push',function(t){
+      var state = State([])
+      var clone = State([])
+      state.on('diff',clone.patch)
+      t.plan(4)
+      state.once('change',function(value){
+        t.deepEqual(value,['test'])
+      })
+      state.push(null,'test')
+      t.deepEqual(clone(),state())
+
+      var state = State({})
+      var clone = State()
+      state.on('diff',clone.patch)
+      state.once(['key'],function(value){
+        t.deepEqual(value,['test'])
+      })
+      state.push('key','test')
+      t.deepEqual(clone(),state())
+    })
+    t.test('pop',function(t){
+      var state = State([1,2])
+      var clone = State([1,2])
+      state.on('diff',clone.patch)
+      t.plan(4)
+      state.once('change',function(value){
+        t.deepEqual(value,[1])
+      })
+      state.pop()
+      t.deepEqual(clone(),state())
+
+      var state = State({key:[1,2]})
+      var clone = State({key:[1,2]})
+      state.on('diff',clone.patch)
+      state.once(['key'],function(value){
+        t.deepEqual(value,[1])
+      })
+      state.pop('key')
+      t.deepEqual(clone(),state())
+    })
+    t.test('concat',function(t){
+      var state = State([1])
+      var clone = State([1])
+      state.on('diff',clone.patch)
+      t.plan(4)
+      state.once('change',function(value){
+        t.deepEqual(value,[1,2])
+      })
+      state.concat(null,[2])
+      t.deepEqual(clone(),state())
+
+      var state = State({a:[1]})
+      var clone = State({a:[1]})
+      state.on('diff',clone.patch)
+      state.once(['a'],function(value){
+        t.deepEqual(value,[1,2])
+      })
+      state.concat('a',[2])
+      t.deepEqual(clone(),state())
+    })
+    t.test('unshift',function(t){
+      var state = State([1])
+      var clone = State([1])
+      state.on('diff',clone.patch)
+      t.plan(4)
+      state.once('change',function(value){
+        t.deepEqual(value,[2,1])
+      })
+      var val = state.unshift(null,2)
+      t.deepEqual(clone(),state())
+
+      var state = State({a:[1]})
+      var clone = State({a:[1]})
+      state.on('diff',clone.patch)
+      state.once(['a'],function(value){
+        t.deepEqual(value,[2,1])
+      })
+      val = state.unshift('a',2)
+      t.deepEqual(clone(),state())
+    })
+    t.test('shift',function(t){
+      var state = State([1,2])
+      var clone = State([1,2])
+      state.on('diff',clone.patch)
+      t.plan(6)
+      state.once('change',function(value){
+        t.deepEqual(value,[2])
+      })
+      var val = state.shift()
+      t.equal(val,1)
+      t.deepEqual(clone(),state())
+
+      var state = State({a:[1,2]})
+      var clone = State({a:[1,2]})
+      state.on('diff',clone.patch)
+      state.once(['a'],function(value){
+        t.deepEqual(value,[2])
+      })
+      val = state.shift('a')
+      t.equal(val,1)
+      t.deepEqual(clone(),state())
+
     })
   })
   t.test('internal pointer',function(t){

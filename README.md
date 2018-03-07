@@ -53,6 +53,29 @@ rules.
   t.end()
 ```
 
+## Arrays
+The most recent version of statesync has added basic functions for arrays. This allows for more
+fine grained change replication to other statesync objects through diff/patch. Values returned
+from functions are the same as JS array operator.
+
+```js
+  //array operations: push, pop, unshift, shift, concat
+  var state = State({array:[]})
+
+  //first param is the path, 1 is the value to push
+  state.push('array',1)  //[1]
+  state.push('array',2)  //[1,2]
+
+  state.unshift('array',0) //[0,1,2]
+
+  var val = state.pop('array') //[0,1], val == 2
+
+  val = state.shift('array') // [1], val == 0
+
+  state.concat('array',[2,3]) //[1,2,3]
+
+```
+
 ## Events
 The state object is a node event emitter, so that api is the same, subscribe with .on or .once, and listen for a 'change' event
 or listen to the particular keys you are interested in.
@@ -331,6 +354,68 @@ an equality check like `lodash.isEqual`.
 
 ### Returns
 null
+
+## Push
+Push a value on to an array. If no value exists at the path, an empty array is created. If underlying value is not an array, an error will be throw, an error will be thrown.
+
+```var result = state.push(key,value)```
+
+### Parameters
+* key - They key to an array, null if root is array.
+* value - Value to push into array.
+
+### Returns
+Normal return object for Array.push
+
+## Pop
+Pop a value off the end of an array at a specified key, reducing array length by 1. If value is empty, an empty array is created. Returns the
+value popped off.
+
+```var result = state.pop(key)```
+
+### Parameters
+* key - They key to an array to apply pop operation, null if root is array.
+
+### Returns
+The last value of the array. Same as Array.pop
+
+## Shift
+Pop a value off the front of the array, reducing length of array by 1.
+
+```var result = state.unshift(key)```
+
+### Parameters
+* key - They key to an array to apply shift operation, null if root is array.
+
+### Returns
+The first value in the array. Same as Array.shift
+
+
+## Unshift
+Push a value onto the front of the array, increasing array length by 1. If value is empty, will create empty
+array to push value onto.
+
+```var result = state.unshift(key)```
+
+### Parameters
+* key - They key to an array to apply shift operation, null if root is array.
+* value - The value to shift onto array.
+
+### Returns
+Same as Array.shift
+
+## Concat
+Concatenate an array to the end of an existing array. If key is null an empty array will be created to concat to.
+
+```var result = state.concat(key,value)```
+
+### Parameters
+* key - They key of an array to concat to the end of. 
+* value - An array to concatenate.
+
+### Returns
+Same as Array.concat
+
 
 ## Disconnect
 Removes all listeners from this state and will stop emitting events. Also allows scope
