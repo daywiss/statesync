@@ -216,6 +216,7 @@ function Scope(root,base,clone,equals){
 
     if(methods.eventNames){
       emitOnPaths_v2(path,value)
+      // emitOnPaths(path,value,path)
     }else{
       emitOnPaths(path,value,path)
     }
@@ -239,10 +240,10 @@ function Scope(root,base,clone,equals){
   function emitOnPaths(path,value,originalPath){
     //fallback to non exhaustive emit
     if(!lodash.isEmpty(methods.listeners(path))){
-      methods.emit(path,methods.get(path),value,originalpath)
+      methods.emit(path,methods.get(path),value,originalPath)
     }
     if(lodash.isEmpty(path)) return 
-    emitOnPaths(path.slice(0,-1),value,originalpath)
+    emitOnPaths(path.slice(0,-1),value,originalPath)
   }
 
 
