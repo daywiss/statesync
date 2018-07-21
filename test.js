@@ -363,6 +363,18 @@ test('statesync',function(t){
       val = state.unshift('a',2)
       t.deepEqual(clone(),state())
     })
+    t.test('unshift in scope',function(t){
+      let state = State({array:[1]})
+      let scope = state.scope('array')
+
+      scope.unshift(null,2)
+
+      t.equal(state('array').length,2)
+      t.equal(scope().length,2)
+      t.deepEqual(state('array'),scope())
+      t.end()
+
+    })
     t.test('shift',function(t){
       var state = State([1,2])
       var clone = State([1,2])
