@@ -105,7 +105,7 @@ function Root(state,clone,equals){
 
   methods.push = function(path,value,emitchange,emitdiff){
     var val = methods.get(path,[])
-    console.log(path,value,val)
+    // console.log(path,value,val)
     var result = val.push(value)
 
     //silently set
