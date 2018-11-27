@@ -1,6 +1,6 @@
 {
   "name": "statesync",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Light weight syncronous global state manager using just lodash and a javascript object.",
   "keywords": [
     "state",
@@ -32,7 +32,7 @@
   "author": "daywiss@gmail.com",
   "license": "ISC",
   "dependencies": {
-    "lodash": "^4.16.4"
+    "lodash": "^4.17.11"
   },
   "devDependencies": {
     "tape": "^4.6.2"

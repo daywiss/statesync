@@ -18,6 +18,7 @@ var lodash = {
   toPath:require('lodash/toPath'),
   concat:require('lodash/concat'),
   merge:require('lodash/merge'),
+  castArray:require('lodash/castArray'),
 }
 
 module.exports = Root
@@ -230,7 +231,7 @@ function Scope(root,base,clone,equals){
       if(name === 'change') return
       if(name === 'diff') return
       //seems like arrays as events get stringified into comma delim words
-      nameArray = name.split(',')
+      const nameArray = name.split(',')
       if(wasPathTouched(path,nameArray)){
         // console.log('nameArray',nameArray,methods.get(name))
         methods.emit(name,methods.get(nameArray),value,path)
