@@ -14,6 +14,11 @@ test('statesync',function(t){
     t.ok(state.set('test1','test1'))
     t.end()
   })
+  t.test('setSilent',function(t){
+    t.ok(state.setSilent('silent','test'))
+    t.ok(state.setSilent('silent1','test1'))
+    t.end()
+  })
   t.test('get state',function(t){
     var result = state.get('test')
     // console.log(result)

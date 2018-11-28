@@ -308,6 +308,15 @@ function Scope(root,base,clone,equals){
     return root.set(path,value,true,true)
   }
 
+  methods.setSilent = function(path,value){
+    path = pathWithBase(path)
+    value = clone(value)
+    if(equals(value,root.get(path))){
+      return value
+    }
+    return root.set(path,value,false,false)
+  }
+
   methods.delete = function(path){
     path = pathWithBase(path)
     return root.delete(path,null,true,true)

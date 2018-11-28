@@ -303,6 +303,32 @@ var result = state(key,defaultValue)
 
 ```
 
+## Set Silent
+Same as set, but will not cause events to fire. This will also cause values not to replicate with diff.
+Use only under special circumstances. You can specify true to change or diff to allow one or the other 
+or both events to fire.
+
+```var result = state.setSilent(key,value,change=false,diff=false)```
+
+### Parameters
+* key (optional) - They key to set, if null, will replace the root of the current scope. This will also invalidate 
+any external reference, so it is not recommended to do so use at own risk.
+* value (optional) - A value to set, if not provided will set key to null or undefined.
+* change (optional) - Default=false. Will fire a change event if set to true.
+* diff (optional) - Default=true. Will fire a diff event if set to true.
+
+### Returns
+the value which was passed with clone applied
+
+## Get
+Get a value on the state. Use lodash "get" notation to access deep properties.     
+
+```js
+var result = state.get(key,defaultValue)
+var result = state(key,defaultValue)
+
+```
+
 ### Parameters
 * key (optional) - They key to get, if null will apply to root 
 * defaultValue (optional) - The value to return if key not found, default: undefined   
