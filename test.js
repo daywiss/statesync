@@ -286,6 +286,18 @@ test('statesync',function(t){
 
       t.end()
     })
+    t.test('another case',t=>{
+      const state = State({})
+      t.plan(2)
+      state.on(['a','b','c'],x=>{
+        t.ok(x)
+      })
+      state.set('a.b',{c:'test'})
+      state.set('a',{b:{c:'test'}})
+      //these should not emit
+      state.set('a.b.d','test')
+      state.set('a.c','test')
+    })
   })
   t.test('arrays',function(t){
     t.test('push',function(t){
