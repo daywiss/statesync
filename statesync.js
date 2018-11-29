@@ -308,13 +308,13 @@ function Scope(root,base,clone,equals){
     return root.set(path,value,true,true)
   }
 
-  methods.setSilent = function(path,value){
+  methods.setSilent = function(path,value,change=false,diff=false){
     path = pathWithBase(path)
     value = clone(value)
     if(equals(value,root.get(path))){
       return value
     }
-    return root.set(path,value,false,false)
+    return root.set(path,value,change,diff)
   }
 
   methods.delete = function(path){
