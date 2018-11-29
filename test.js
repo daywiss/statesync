@@ -1,6 +1,6 @@
 var test = require('tape')
 var lodash = require('lodash')
-var State = require('./statesync-perf')
+var State = require('.')
 
 test('statesync',function(t){
   var state = null

@@ -5,8 +5,6 @@ const StatePerf = require('./statesync-perf')
 const copy = require('fast-copy').default
 const {deepEqual} = require('fast-equals')
 
-
-
 function clone(x){
   return copy(x)
 }
