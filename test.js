@@ -1,6 +1,6 @@
 var test = require('tape')
 var lodash = require('lodash')
-var State = require('.')
+var State = require('./statesync-perf')
 
 test('statesync',function(t){
   var state = null
@@ -289,8 +289,9 @@ test('statesync',function(t){
     t.test('another case',t=>{
       const state = State({})
       t.plan(2)
-      state.on(['a','b','c'],x=>{
-        t.ok(x)
+      state.on(['a','b','c'],(...x)=>{
+        console.log(x)
+        t.ok(x[0])
       })
       state.set('a.b',{c:'test'})
       state.set('a',{b:{c:'test'}})

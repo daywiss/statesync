@@ -35,6 +35,8 @@
     "lodash": "^4.17.11"
   },
   "devDependencies": {
+    "fast-copy": "^1.2.3",
+    "fast-equals": "^1.6.1",
     "tape": "^4.6.2"
   }
 }

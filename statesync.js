@@ -37,10 +37,10 @@ function Root(state,clone,equals){
   var children = {}
 
   function emitChange(path,value){
-    methods.emit('change',path,value)
+    methods.emit('message',{type:'change',path,value})
   }
   function emitDiff(method,path,value){
-    methods.emit('diff',{ method:method,path:path,value:value })
+    methods.emit('message',{type:'diff', method:method,path:path,value:value })
   }
 
 
@@ -208,55 +208,64 @@ function Scope(root,base,clone,equals){
   //this seems to work...
   lodash.merge(methods,new Emitter())
 
-  function handleRootChange(path,value){
-    //check if path affects us
-    //emit appropriate events
-    path = wasPathTouched(path,base)
-    if(path === false) return
-    methods.emit('change',methods.get(),methods.get(path),path)
+  const paths = new Map()
 
+  function handleRootChange({value},path){
+    const blob = methods.get()
+    // const blob = fastGet()
     if(methods.eventNames){
-      emitOnPaths_v2(path,value)
-      // emitOnPaths(path,value,path)
+      emitOnPaths_v2(path,value,blob)
     }else{
-      emitOnPaths(path,value,path)
+      methods.emit('change',blob,lodash.get(path,blob),path)
+      emitOnPaths(path,value,path,blob)
     }
   }
 
-  function emitOnPaths_v2(path,value){
+  function emitOnPaths_v2(path,value,blob){
     assert(methods.eventNames,'This function only works in Node v6 or greater')
-    lodash.each(methods.eventNames(),function(name){
+    methods.eventNames().forEach(name=>{
       // console.log('allpaths',nameArray,path)
       //ignore diff and change listeners
-      if(name === 'change') return
       if(name === 'diff') return
+      if(name === 'change'){
+        return methods.emit('change',blob,lodash.get(blob,path),path)
+      }
       //seems like arrays as events get stringified into comma delim words
       const nameArray = name.split(',')
       if(wasPathTouched(path,nameArray)){
-        // console.log('nameArray',nameArray,methods.get(name))
-        methods.emit(name,methods.get(nameArray),value,path)
+        // console.log('nameArray',nameArray,value,blob)
+        methods.emit(name,lodash.get(blob,nameArray),value,path)
       }
     })
   }
-  function emitOnPaths(path,value,originalPath){
+
+
+  function emitOnPaths(path,value,originalPath,blob){
     //fallback to non exhaustive emit
     if(!lodash.isEmpty(methods.listeners(path))){
-      methods.emit(path,methods.get(path),value,originalPath)
+      methods.emit(path,lodash.get(path,blob),value,originalPath)
     }
     if(lodash.isEmpty(path)) return 
-    emitOnPaths(path.slice(0,-1),value,originalPath)
+    emitOnPaths(path.slice(0,-1),value,originalPath,blob)
   }
 
 
-  function handleRootDiff(action){
-    var path = wasPathTouched(action.path,base)
-    if(path === false) return
+  function handleRootDiff(action,path){
     methods.emit('diff',{method:action.method,path:path,value:action.value})
   }
 
-  root.on('change',handleRootChange)
-  root.on('diff',handleRootDiff)
+  function handleRootMessage(msg){
+    const path = wasPathTouched(msg.path,base)
+    if(path === false) return
+    if(msg.type === 'diff'){
+      return handleRootDiff(msg,path)
+    }
+    if(msg.type === 'change'){
+      return handleRootChange(msg,path)
+    }
+  }
 
+  root.on('message',handleRootMessage)
 
   //cases where path changes on our branch and we emit:
   //root changes, emit
@@ -266,15 +275,18 @@ function Scope(root,base,clone,equals){
   //a path changes on the way to us, but branches of before us, dont emit
   //in all cases i think if one or the other path is consumed, we emit
   function wasPathTouched(path,base){
-    // console.log(path,base)
-    //path is empty, which means root was changed
-    if(lodash.isEmpty(path)) return base
-    //if we are root, then we always change
-    if(lodash.isEmpty(base)) return path
-    //check if most significant branch matches and recurse
-    if(path[0] == base[0]) return wasPathTouched(path.slice(1),base.slice(1))
-    //most significant branch does nto match, and neither path was consumed completely
-    return false
+    let index = 0
+    do{
+      if(index >= path.length) return base.slice(index)
+      //if we are root, then we always change
+      if(index >= base.length) return path.slice(index)
+      // console.log(path,base,index,path[index],base[index])
+      if(path[index] == base[index]){
+        index++
+      }else{
+        return false
+      }
+    }while(true)
   }
 
   //concat base with path
@@ -298,6 +310,12 @@ function Scope(root,base,clone,equals){
     defaultValue = clone(defaultValue)
     return clone(root.get(path,defaultValue))
   }
+
+  function fastGet(path,defaultValue){
+    path = pathWithBase(path)
+    defaultValue = defaultValue
+    return root.get(path,defaultValue)
+  }              
 
   methods.set = function(path,value){
     path = pathWithBase(path)
@@ -376,8 +394,7 @@ function Scope(root,base,clone,equals){
 
   //disconnect scope from root, no more events
   methods.disconnect = function(){
-    root.removeListener('diff',handleRootDiff)
-    root.removeListener('change',handleRootChange)
+    root.removeListener('message',handleRootDiff)
     methods.removeAllListeners()
   }
 
@@ -385,6 +402,13 @@ function Scope(root,base,clone,equals){
 
   methods.path = function(){
     return base
+  }
+
+  methods.onPath = (path,cb) =>{
+    path = lodash.toPath(path)
+    paths.set(path.join('.'),{
+      path,cb
+    })
   }
 
   return methods
