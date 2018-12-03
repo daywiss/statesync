@@ -221,6 +221,17 @@ function Scope(root,base,clone,equals){
     }
   }
 
+  function safeGet(state,path=[],def){
+    if(path.length == 0) return state
+    return lodash.get(state,path,def)
+  }
+
+  function fastGet(path,defaultValue){
+    path = pathWithBase(path)
+    defaultValue = defaultValue
+    return root.get(path,defaultValue)
+  }              
+
   function emitOnPaths_v2(path,value,blob){
     assert(methods.eventNames,'This function only works in Node v6 or greater')
     methods.eventNames().forEach(name=>{
@@ -228,13 +239,15 @@ function Scope(root,base,clone,equals){
       //ignore diff and change listeners
       if(name === 'diff') return
       if(name === 'change'){
-        return methods.emit('change',blob,lodash.get(blob,path),path)
+        // console.log('change',blob,safeGet(blob,path),path)
+        return methods.emit('change',blob,safeGet(blob,path),path)
       }
       //seems like arrays as events get stringified into comma delim words
       const nameArray = name.split(',')
       if(wasPathTouched(path,nameArray)){
-        // console.log('nameArray',nameArray,value,blob)
-        methods.emit(name,lodash.get(blob,nameArray),value,path)
+        // console.log(nameArray,blob)
+        // console.log('keychange',name,safeGet(blob,nameArray),value,path)
+        methods.emit(name,safeGet(blob,nameArray),value,path)
       }
     })
   }
@@ -310,12 +323,6 @@ function Scope(root,base,clone,equals){
     defaultValue = clone(defaultValue)
     return clone(root.get(path,defaultValue))
   }
-
-  function fastGet(path,defaultValue){
-    path = pathWithBase(path)
-    defaultValue = defaultValue
-    return root.get(path,defaultValue)
-  }              
 
   methods.set = function(path,value){
     path = pathWithBase(path)

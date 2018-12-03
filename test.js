@@ -290,7 +290,7 @@ test('statesync',function(t){
       const state = State({})
       t.plan(2)
       state.on(['a','b','c'],(...x)=>{
-        console.log(x)
+        // console.log(x)
         t.ok(x[0])
       })
       state.set('a.b',{c:'test'})
@@ -408,8 +408,9 @@ test('statesync',function(t){
       var state = State({a:[1,2]})
       var clone = State({a:[1,2]})
       state.on('diff',clone.patch)
-      state.once(['a'],function(value){
-        t.deepEqual(value,[2])
+      state.once(['a'],function(...args){
+        // console.log(...args)
+        t.deepEqual(args[0],[2])
       })
       val = state.shift('a')
       t.equal(val,1)
