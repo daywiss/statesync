@@ -216,7 +216,7 @@ function Scope(root,base,clone,equals){
     if(methods.eventNames){
       emitOnPaths_v2(path,value,blob)
     }else{
-      methods.emit('change',blob,lodash.get(path,blob),path)
+      methods.emit('change',blob,safeGet(blob,path),path)
       emitOnPaths(path,value,path,blob)
     }
   }
@@ -256,7 +256,7 @@ function Scope(root,base,clone,equals){
   function emitOnPaths(path,value,originalPath,blob){
     //fallback to non exhaustive emit
     if(!lodash.isEmpty(methods.listeners(path))){
-      methods.emit(path,lodash.get(path,blob),value,originalPath)
+      methods.emit(path,safeGet(blob,path),value,originalPath)
     }
     if(lodash.isEmpty(path)) return 
     emitOnPaths(path.slice(0,-1),value,originalPath,blob)

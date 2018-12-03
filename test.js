@@ -288,11 +288,12 @@ test('statesync',function(t){
     })
     t.test('another case',t=>{
       const state = State({})
-      t.plan(2)
+      t.plan(3)
       state.on(['a','b','c'],(...x)=>{
-        // console.log(x)
+        console.log(x)
         t.ok(x[0])
       })
+      state.set('a.b.c','test')
       state.set('a.b',{c:'test'})
       state.set('a',{b:{c:'test'}})
       //these should not emit
